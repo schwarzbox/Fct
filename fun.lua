@@ -26,7 +26,6 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
--- To Do
 -- 2.0
 -- verbose
 -- separate tests
@@ -287,7 +286,6 @@ local function test  ()
 
     gkv(map(complex_eq, {{1,0},{0,1},{0,0},{1,1}}))
 
-
     print('\njoin')
     print('no args',join())
     gkv(join(target, {'join', zero = 0}))
@@ -365,7 +363,6 @@ local function test  ()
 
 end
 
--- test ()
 
 return { ['gkv'] = gkv, ['lent'] = lent,
         ['clone'] = clone, ['copy'] = copy,
@@ -377,4 +374,4 @@ return { ['gkv'] = gkv, ['lent'] = lent,
         ['filter'] = filter, ['reduce'] = reduce,
         ['partial'] = partial, ['compose'] = compose,
         ['randkey'] = randkey, ['randval'] = randval,
-        ['shuffle'] = shuffle }
+        ['shuffle'] = shuffle, ['test'] = test }
