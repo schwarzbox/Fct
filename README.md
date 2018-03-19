@@ -10,6 +10,8 @@ local fc = require(fun)
 
 3. See examples inside fun.lua
 
+#Tool Box
+
 gkv - print key, values and type of given table
 
 lent - return number of all elements in give table
@@ -46,5 +48,5 @@ compose - return complex function constructed from two simple
 
 randkey, randval - return random key/value from given table
 
-shuffle - return of mixed version of given table
+shuffle - return the mixed version of given table
 
