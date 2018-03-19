@@ -5,12 +5,12 @@ Set of Functional Tools
 1. Copy fun.lua to the project folder or in the directory in LUA_PATH
 
 2. Import module as usual
-
-local fc = require(fun)
-
+```
+    local fc = require(fun)
+```
 3. See examples inside fun.lua
 
-#Tool Box
+# Tool Box
 
 gkv - print key, values and type of given table
 

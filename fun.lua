@@ -2,15 +2,8 @@
 -- Thu Feb 22 10:46:31 2018
 
 -- FUN
--- 1.0
-
 -- Functional Tools (Lua)
-
--- gkv, lent, clone, copy, range, keys, iskey, isval, equal
--- join, map, mapr, mapx, exem, filter, partial, reduce, compose,
--- randkey, randval, shuffle
-
--- local fc = require(fun)
+-- 1.0
 
 -- MIT License
 -- Copyright (c) 2018 Alexander Veledzimovich veledz@gmail.com
@@ -33,10 +26,17 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
+-- To Do
 -- 2.0
-
 -- verbose
--- improve random
+-- separate tests
+-- improve randval, randkey
+-- join with var args
+
+-- Tool Box
+-- gkv, lent, clone, copy, range, keys, iskey, isval, equal
+-- join, map, mapr, mapx, exem, filter, partial, reduce, compose,
+-- randkey, randval, shuffle
 
 -- for old Lua version
 local unpack = table.unpack or unpack
