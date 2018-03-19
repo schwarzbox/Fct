@@ -6,7 +6,7 @@ Set of Functional Tools
 
 2. Import module as usual
 ``` lua
-    local fc = require(fun)
+local fc = require(fun)
 ```
 3. See examples inside fun.lua
 
