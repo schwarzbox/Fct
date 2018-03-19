@@ -4,7 +4,7 @@
 -- FUN
 -- 1.0
 
--- functional tools for Lua
+-- Functional Tools (Lua)
 
 -- gkv, lent, clone, copy, range, keys, iskey, isval, equal
 -- join, map, mapr, mapx, exem, filter, partial, reduce, compose,

@@ -2,6 +2,14 @@
 
 Set of Functional Tools
 
+1. Copy fun.lua to the project folder or in the directory in LUA_PATH
+
+2. Import module as usual
+
+local fc = require(fun)
+
+3. See examples inside fun.lua
+
 gkv - print key, values and type of given table
 
 lent - return number of all elements in give table
@@ -38,5 +46,5 @@ compose - return complex function constructed from two simple
 
 randkey, randval - return random key/value from given table
 
-shuffle - return of given table
+shuffle - return of mixed version of given table
 
