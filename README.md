@@ -19,6 +19,10 @@ gkv - print key, values and type of given table.
 
 lent - return number of all elements in give table.
 
+slice - return slice of given table.
+
+split - return table of tables splited by given number.
+
 clone - return recursive copy of given table.
 
 copy - return first level copy of given table.
