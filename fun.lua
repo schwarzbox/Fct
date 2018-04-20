@@ -222,16 +222,16 @@ local function zip(...)
                         {...})
 
     local arr = {}
-    local min_len=false
+    local min_len = false
 
     for _, v in pairs(args) do
         local len_arg = lent(v)
-        if not min_len then min_len=len_arg end
+        if not min_len then min_len = len_arg end
         if len_arg < min_len then min_len = len_arg end
     end
-
+    print(min_len)
     for i=1, min_len do
-        table.insert(arr, map(function (item) return item[i] end, args))
+        arr[i]=map(function (item) return item[i] end, args)
     end
     return arr
 end
@@ -357,7 +357,6 @@ local function test ()
     print('print values')
     map(print, target)
 
-
     print('\nmapx')
     local python3_map = mapx(tostring, target)
     gkv(python3_map)
@@ -390,6 +389,10 @@ local function test ()
     print('unzip')
     local unzipped = zip(unpack(zipped))
     map(gkv, unzipped)
+    print('only for num keys')
+    local key_tab = {['key'] = 'key'}
+    local num_tab = {1, 0}
+    map(gkv, zip(key_tab,num_tab))
 
     print('\nreduce')
     local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
