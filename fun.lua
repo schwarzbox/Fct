@@ -427,8 +427,6 @@ local function test ()
 
 end
 
-test()
-
 return { ['gkv'] = gkv, ['lent'] = lent,
         ['slice']=slice, ['split']=split,
         ['clone'] = clone, ['copy'] = copy,
