@@ -30,24 +30,23 @@
 -- verbose
 -- separate tests
 -- improve seed in randval, randkey
--- zip
 
 -- Tool Box
 -- gkv, lent, slice, split, clone, copy, range, keys, iskey, isval, equal
--- join, map, mapr, mapx, exem, filter, partial, reduce, compose,
+-- join, map, mapr, mapx, exem, filter, zip, partial, reduce, compose,
 -- randkey, randval, shuffle
 
 -- for old Lua version
 local unpack = table.unpack or unpack
 
-local function gkv (item)
+local function gkv(item)
     if type(item) ~= 'table' then return nil end
     for k, v in pairs(item) do
         print(k, v, type(v))
     end
 end
 
-local function lent (item)
+local function lent(item)
     if type(item) ~= 'table' then return nil end
     local i = 0
     for _ in pairs(item) do
@@ -68,12 +67,12 @@ local function split(item, part)
     local arr = {}
     for i=1, #item, part do
         local tmp = slice(item, i, i + part - 1)
-        if #tmp==part then table.insert(arr, tmp) end
+        if #tmp == part then table.insert(arr, tmp) end
     end
     return arr
 end
 
-local function clone (item)
+local function clone(item)
     if type(item) ~= 'table' then return nil end
     local arr = {}
     local meta = getmetatable(item)
@@ -89,7 +88,7 @@ local function clone (item)
     return arr
 end
 
-local function copy ( item )
+local function copy(item)
     if type(item) ~= 'table' then return nil end
     local arr = {}
     local meta = getmetatable(item)
@@ -98,7 +97,7 @@ local function copy ( item )
     return arr
 end
 
-local function range (...)
+local function range(...)
     local args={...}
     local start, finish, step = 1, args[1], args[3] or 1
 
@@ -112,7 +111,7 @@ local function range (...)
     return arr
 end
 
-local function keys ( item )
+local function keys(item)
     if type(item) ~= 'table' then return nil end
     local arr = {}
     for k, _ in pairs(item) do
@@ -121,7 +120,7 @@ local function keys ( item )
     return arr
 end
 
-local function iskey ( key, item )
+local function iskey(key, item)
     if not key or type(item) ~= 'table' then return false end
     for k, v in pairs(item) do
         if k == key then return {k,v} end
@@ -129,7 +128,7 @@ local function iskey ( key, item )
     return false
 end
 
-local function isval ( val, item )
+local function isval(val, item)
     if not val or type(item) ~= 'table' then return false end
     for k, v in pairs(item) do
         if v == val then return {k,v} end
@@ -137,7 +136,7 @@ local function isval ( val, item )
     return false
 end
 
-local function equal (item1, item2)
+local function equal(item1, item2)
     if type(item1) ~= 'table' or type(item2) ~= 'table' then return nil end
     local len1 = lent(item1)
     local len2 = lent(item2)
@@ -148,7 +147,7 @@ local function equal (item1, item2)
     return true
 end
 
-local function join (item1, item2)
+local function join(item1, item2)
     if not item1 then return nil end
     if type(item1) ~= 'table' then item1 = {item1} end
     item2 = item2 or {}
@@ -165,7 +164,7 @@ local function join (item1, item2)
     return arr
 end
 
-local function map (func, item)
+local function map(func, item)
     if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
     local arr = {}
     for k, v in pairs(item) do
@@ -174,7 +173,7 @@ local function map (func, item)
     return arr
 end
 
-local function mapr (func, item)
+local function mapr(func, item)
     if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
     local arr = {}
     for k, v in pairs(item) do
@@ -188,7 +187,7 @@ local function mapr (func, item)
 end
 
 
-local function mapx (func, item)
+local function mapx(func, item)
     if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
     local arr = {}
     for k, v in pairs(item) do
@@ -197,7 +196,7 @@ local function mapx (func, item)
     return arr
 end
 
-local function exem (item)
+local function exem(item)
     if type(item) ~= 'table' then return nil end
     local arr = {}
     for k, v in pairs(item) do
@@ -208,7 +207,7 @@ local function exem (item)
 end
 
 
-local function filter (func, item)
+local function filter(func, item)
     if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
     local arr = {}
     for k, v in pairs(item) do
@@ -217,12 +216,32 @@ local function filter (func, item)
     return arr
 end
 
-local function partial (func, ... )
-    if type(func) ~= 'function' then return nil end
-    local args = { ... }
+local function zip(...)
+    local args = filter(function (item)
+                        if type(item) == 'table' then return true end end,
+                        {...})
 
-    local function inner ( ... )
-        local new_args = { ... }
+    local arr = {}
+    local min_len=false
+
+    for _, v in pairs(args) do
+        local len_arg = lent(v)
+        if not min_len then min_len=len_arg end
+        if len_arg < min_len then min_len = len_arg end
+    end
+
+    for i=1, min_len do
+        table.insert(arr, map(function (item) return item[i] end, args))
+    end
+    return arr
+end
+
+local function partial (func, ...)
+    if type(func) ~= 'function' then return nil end
+    local args = {...}
+
+    local function inner (...)
+        local new_args = {...}
         local res = join(args, new_args)
 
         return func(unpack(res, 1, lent(res)))
@@ -355,7 +374,7 @@ local function test ()
     print('len all items recursevly')
     gkv(map(string.len, map(tostring, join(recursive, recursive['bit']))))
 
-    local array = {16, 32, 64}
+    local array = {16, 32, 64, 128}
     local mixarr = {'moon', 'lua', 42}
     print('\nfilter')
     print('string only')
@@ -365,9 +384,15 @@ local function test ()
     print('len > 3')
     gkv(filter(function(x) return tostring(x):len() > 3 end , mixarr))
 
+    print('\nzip')
+    local zipped = zip(array,mixarr)
+    map(gkv, zipped)
+    print('unzip')
+    local unzipped = zip(unpack(zipped))
+    map(gkv, unzipped)
+
     print('\nreduce')
-    local nested = {{1,0},{0,1},{0,0},1,1,{42}}
-    print(reduce(function(x, y) return  x + y end, {1,1}))
+    local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
     print(reduce(function(x, y) return  x + y end, {1,2,4,8,16,32,64,128}))
     print('flat table')
     gkv(reduce(join,nested))
@@ -383,10 +408,10 @@ local function test ()
     local filter_str = partial(filter,
                                function(x) return type(x) == 'number' end)
     gkv(filter_str(mixarr))
-    print('make lent for all items')
-    local maplent = partial(map, string.len)
 
     print('\ncompose')
+    print('make lent for all items')
+    local maplent = partial(map, string.len)
     print('exclude gkv')
     local no_gkv = compose(gkv, mapstr)
     no_gkv(mixarr)
@@ -402,6 +427,7 @@ local function test ()
 
 end
 
+test()
 
 return { ['gkv'] = gkv, ['lent'] = lent,
         ['slice']=slice, ['split']=split,
@@ -411,7 +437,7 @@ return { ['gkv'] = gkv, ['lent'] = lent,
         ['equal'] = equal, ['join'] = join,
         ['map'] = map, ['mapx'] = mapx,
         ['exem'] = exem, ['mapr'] = mapr,
-        ['filter'] = filter, ['reduce'] = reduce,
+        ['filter'] = filter, ['zip'] = zip, ['reduce'] = reduce,
         ['partial'] = partial, ['compose'] = compose,
         ['randkey'] = randkey, ['randval'] = randval,
         ['shuffle'] = shuffle, ['test'] = test }

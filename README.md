@@ -47,6 +47,8 @@ exem - call every function in table.
 
 filter - filter table by given function.
 
+zip -  iterates through multiple tables, and aggregates them.
+
 partial - return function with fixed first argument.
 
 reduce - call a function to each element in the table to reduce the table to a single value.
