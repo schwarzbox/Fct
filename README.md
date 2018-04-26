@@ -17,17 +17,23 @@ fc.test()
 
 gkv - print key, values and type of given table.
 
+range - return table with numbers.
+
 lent - return number of all elements in give table.
+
+repl - replicate item and return table of items.
+
+split - convert string or number to table.
+
+reverse - reverse table and put non number keys at the end.
 
 slice - return slice of given table.
 
-split - return table of tables splited by given number.
+sep - return table separated on n-tables.
 
 clone - return recursive copy of given table.
 
 copy - return first level copy of given table.
-
-range - return table with numbers.
 
 keys - return keys of given table.
 

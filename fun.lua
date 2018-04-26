@@ -32,8 +32,10 @@
 -- improve seed in randval, randkey
 
 -- Tool Box
--- gkv, lent, slice, split, clone, copy, range, keys, iskey, isval, equal
--- join, map, mapr, mapx, exem, filter, zip, partial, reduce, compose,
+-- gkv, range, lent, repl, split, reverse, slice, sep, iter, clone, copy
+-- keys, iskey, isval
+-- equal, join, map, mapr, mapx, exem, filter, zip
+-- partial, reduce, compose,
 -- randkey, randval, shuffle
 
 -- for old Lua version
@@ -46,6 +48,26 @@ local function gkv(item)
     end
 end
 
+local function range(...)
+    local args={...}
+    local start, fin
+    local step = args[3] or 1
+
+    if #args == 1 then
+        start = 1
+        fin = args[1]
+    elseif #args >= 2 then
+        start = args[1]
+        fin = args[2]
+    else
+        return
+    end
+
+    local arr = {}
+    for i=start, fin, step do table.insert(arr,i) end
+    return arr
+end
+
 local function lent(item)
     if type(item) ~= 'table' then return nil end
     local i = 0
@@ -55,20 +77,83 @@ local function lent(item)
     return i
 end
 
-local function slice(item, st, fin)
-    if type(item) ~= 'table' then return nil end
-    fin = fin or nil
-    return {unpack(item, st, fin)}
+local function repl(item, num)
+    local arr = {}
+    for i=1, num do
+        arr[i] = item
+    end
+    return arr
 end
 
-local function split(item, part)
-    if type(item) ~= 'table' then return nil end
-    part = part or 1
+local function split(item, sep)
+    if (type(item) ~= 'string' and type(item) ~= 'number') then return nil end
+    item = tostring(item)
+    sep = sep or ''
     local arr = {}
-    for i=1, #item, part do
-        local tmp = slice(item, i, i + part - 1)
-        if #tmp == part then table.insert(arr, tmp) end
+    if item:find(sep) ~= 1 then
+        while item:find(sep) and item:find(sep) > 1 do
+            table.insert(arr, item:sub(1, item:find(sep)-1))
+            item = item:sub(item:find(sep)+1, -1)
+        end
+        table.insert(arr, item:sub(1, item:len()))
+    else
+        for i=1, item:len() do
+            table.insert(arr, item:sub(i, i))
+        end
     end
+    return arr
+end
+
+local function reverse(item)
+    if type(item) ~= 'table' then return nil end
+    local arr = {}
+    local meta = getmetatable(item)
+    for k,v in pairs(item) do
+        if type(k) == 'number' then
+            table.insert(arr,1,v)
+        else
+            arr[k] = v
+        end
+    end
+    setmetatable(arr, meta)
+    return arr
+end
+
+
+local function slice(item, start, fin, step)
+    if type(item) ~= 'table' then return nil end
+    fin = fin or #item
+    step = step or 1
+    local arr = {}
+
+    local rang=range(start, fin, step)
+    for i=1, #rang do
+        arr[i]=item[rang[i]]
+    end
+    return arr
+end
+
+local function sep(item, num)
+    if type(item) ~= 'table' then return nil end
+    num = num or 1
+    local arr = {}
+    for i=1, #item, num do
+        local tmp = {unpack(item, i, i + num - 1)}
+        if #tmp == num then table.insert(arr, tmp) end
+    end
+    return arr
+end
+
+local function iter(item)
+    local meta = {}
+    local arr = {}
+    arr.n = lent(item)
+    arr.yld = coroutine.wrap(function() for _,v in pairs(item) do
+                                    coroutine.yield(v) end end)
+    function meta.__index(self)
+        return self.yld()
+    end
+    setmetatable(arr, meta)
     return arr
 end
 
@@ -94,20 +179,6 @@ local function copy(item)
     local meta = getmetatable(item)
     for k, v in pairs(item) do arr[k] = v end
     setmetatable(arr, meta)
-    return arr
-end
-
-local function range(...)
-    local args={...}
-    local start, finish, step = 1, args[1], args[3] or 1
-
-    if #args > 1 then
-        start = args[1]
-        finish = args[2]
-    end
-
-    local arr = {}
-    for i=start, finish, step do arr[i] = i end
     return arr
 end
 
@@ -217,30 +288,30 @@ local function filter(func, item)
 end
 
 local function zip(...)
-    local args = filter(function (item)
+    local args = filter(function(item)
                         if type(item) == 'table' then return true end end,
                         {...})
+    if next(args) == nil then return nil end
 
-    local arr = {}
     local min_len = false
-
     for _, v in pairs(args) do
         local len_arg = lent(v)
         if not min_len then min_len = len_arg end
         if len_arg < min_len then min_len = len_arg end
     end
-    print(min_len)
+
+    local arr = {}
     for i=1, min_len do
-        arr[i]=map(function (item) return item[i] end, args)
+        arr[i] = map(function(item) return item[i] end, args)
     end
     return arr
 end
 
-local function partial (func, ...)
+local function partial(func, ...)
     if type(func) ~= 'function' then return nil end
     local args = {...}
 
-    local function inner (...)
+    local function inner(...)
         local new_args = {...}
         local res = join(args, new_args)
 
@@ -249,7 +320,7 @@ local function partial (func, ...)
     return inner
 end
 
-local function reduce (func, item)
+local function reduce(func, item)
     if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
     local res = nil
     local first = item[1]
@@ -260,7 +331,7 @@ local function reduce (func, item)
     return res
 end
 
-local function compose (func, wrap)
+local function compose(func, wrap)
     if type(func) ~= 'function' then return nil end
     local function inner ( ... )
         return reduce(function(x, y) return  y(x) end, {wrap( ... ), func})
@@ -275,7 +346,7 @@ local function randkey (item)
     return keys(item)[index]
 end
 
-local function randval (item)
+local function randval(item)
     return item[randkey(item)]
 end
 
@@ -300,18 +371,41 @@ local function test ()
 
     print('gkv')
     gkv(target)
+
+    print('\nrange')
+    gkv((range(1,5,2)))
+    for i=1, #range(3) do
+        print('range',i)
+    end
+
     print('\nlent', lent(target), #target)
 
     local a = clone(target)
     local b = clone(target)
 
-    print('\nslice')
-    gkv(slice(target,3))
+    print('\nrepl')
+    gkv(repl('lua',4))
+    gkv(repl(target,2))
 
     print('\nsplit')
-    for _,v in pairs(split(target,2)) do
+    gkv(split('code lua 42 196', ' '))
+    gkv(split(196,''))
+    gkv(split('no sense','42'))
+
+    print('\nslice')
+    gkv(slice(target,2,4,2))
+
+    print('\nsep')
+    for _,v in pairs(sep(target,2)) do
         print('done')
         gkv(v)
+    end
+
+    print('\niter')
+    local itarget = iter(target)
+    print('first',itarget[1])
+    for i=1, itarget.n-1 do
+        print(itarget[i])
     end
 
     print('\nclone',a ~= b)
@@ -321,12 +415,6 @@ local function test ()
     b = copy(target)
     print('\ncopy', a ~= b)
     print('copy first level', a['bit'] ~= b['bit'])
-
-    print('\nrange')
-    gkv((range(1,5,2)))
-    for i=1, #range(3) do
-        print('range',i)
-    end
 
     print('\nkeys')
     gkv((keys(target)))
@@ -347,7 +435,6 @@ local function test ()
     gkv(join({1,0}, 42))
     print('join vargs')
     gkv(reduce(join, {{1,0}, 42, {['lua']='code'}, {196}}))
-
 
     print('\nmap')
     gkv(map(table.concat, {{'map'}, {0,1}}))
@@ -374,7 +461,7 @@ local function test ()
     gkv(map(string.len, map(tostring, join(recursive, recursive['bit']))))
 
     local array = {16, 32, 64, 128}
-    local mixarr = {'moon', 'lua', 42}
+    local mixarr = {'moon', 'lua', 'code'}
     print('\nfilter')
     print('string only')
     gkv(filter(function(x) return type(x) == 'string' end, mixarr))
@@ -430,15 +517,16 @@ local function test ()
 
 end
 
-return { ['gkv'] = gkv, ['lent'] = lent,
-        ['slice']=slice, ['split']=split,
+-- test()
+
+return { ['gkv'] = gkv, ['range'] = range,['lent'] = lent,
+        ['repl'] = repl, ['split'] = split, ['reverse'] = reverse,
+        ['slice']=slice, ['sep']=sep, ['iter'] = iter,
         ['clone'] = clone, ['copy'] = copy,
-        ['range'] = range, ['keys'] = keys,
-        ['iskey'] = iskey, ['isval'] = isval,
+        ['keys'] = keys,['iskey'] = iskey, ['isval'] = isval,
         ['equal'] = equal, ['join'] = join,
-        ['map'] = map, ['mapx'] = mapx,
-        ['exem'] = exem, ['mapr'] = mapr,
+        ['map'] = map, ['mapx'] = mapx, ['exem'] = exem, ['mapr'] = mapr,
         ['filter'] = filter, ['zip'] = zip, ['reduce'] = reduce,
         ['partial'] = partial, ['compose'] = compose,
-        ['randkey'] = randkey, ['randval'] = randval,
-        ['shuffle'] = shuffle, ['test'] = test }
+        ['randkey'] = randkey, ['randval'] = randval, ['shuffle'] = shuffle,
+        ['test'] = test }
