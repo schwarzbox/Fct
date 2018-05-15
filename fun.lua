@@ -1,9 +1,8 @@
 #!/usr/bin/env lua
--- Thu Feb 22 10:46:31 2018
-
 -- FUN
--- Functional Tools (Lua)
 -- 1.0
+-- Functional Tools (Lua)
+-- fun.lua
 
 -- MIT License
 -- Copyright (c) 2018 Alexander Veledzimovich veledz@gmail.com
@@ -29,17 +28,18 @@
 -- 2.0
 -- verbose
 -- separate tests
--- improve seed in randval, randkey
 
 -- Tool Box
--- gkv, range, lent, repl, split, reverse, slice, sep, iter, clone, copy
--- keys, iskey, isval
--- equal, join, map, mapr, mapx, exem, filter, zip
+-- gkv, range, lent, repl, split, reverse, slice, sep, clone, copy
+-- keys, iskey, isval, iter,
+-- equal, join, map, mapr, mapx, exem, filter, any, all, zip
 -- partial, reduce, compose,
 -- randkey, randval, shuffle
 
 -- for old Lua version
 local unpack = table.unpack or unpack
+-- seed
+math.randomseed(os.time())
 
 local function gkv(item)
     if type(item) ~= 'table' then return nil end
@@ -60,12 +60,12 @@ local function range(...)
         start = args[1]
         fin = args[2]
     else
-        return
+        return nil
     end
 
     local arr = {}
     for i=start, fin, step do table.insert(arr,i) end
-    return arr
+    if #arr>0 then return arr else return nil end
 end
 
 local function lent(item)
@@ -144,18 +144,6 @@ local function sep(item, num)
     return arr
 end
 
-local function iter(item)
-    local meta = {}
-    local arr = {}
-    arr.n = lent(item)
-    arr.yld = coroutine.wrap(function() for _,v in pairs(item) do
-                                    coroutine.yield(v) end end)
-    function meta.__index(self)
-        return self.yld()
-    end
-    setmetatable(arr, meta)
-    return arr
-end
 
 local function clone(item)
     if type(item) ~= 'table' then return nil end
@@ -176,9 +164,7 @@ end
 local function copy(item)
     if type(item) ~= 'table' then return nil end
     local arr = {}
-    local meta = getmetatable(item)
     for k, v in pairs(item) do arr[k] = v end
-    setmetatable(arr, meta)
     return arr
 end
 
@@ -205,6 +191,34 @@ local function isval(val, item)
         if v == val then return {k,v} end
     end
     return false
+end
+
+local function iter(item)
+    if type(item) ~= 'table' then return nil end
+    local tmp_item = copy(item)
+    local arr = {}
+    local meta = {}
+
+    function meta.__index()
+        local all_keys = keys(tmp_item)
+        if next(all_keys) then
+            local key = all_keys[1]
+            local res = tmp_item[key]
+            if type(key) == 'number' then
+                table.remove(tmp_item, key)
+            else
+                tmp_item[key] = nil
+            end
+            return res end
+    end
+
+    function meta.__len()
+    local len = 0
+    for _,_ in pairs(tmp_item) do len = len + 1 end
+    return len
+    end
+    setmetatable(arr, meta)
+    return arr
 end
 
 local function equal(item1, item2)
@@ -287,6 +301,18 @@ local function filter(func, item)
     return arr
 end
 
+local function any(item)
+    if type(item) ~= 'table' then return nil end
+    for _,v in pairs(item) do if v then return true end end
+    return false
+end
+
+local function all(item)
+    if type(item) ~= 'table' then return nil end
+    for _,v in pairs(item) do if not v then return false end end
+    return true
+end
+
 local function zip(...)
     local args = filter(function(item)
                         if type(item) == 'table' then return true end end,
@@ -295,7 +321,7 @@ local function zip(...)
 
     local min_len = false
     for _, v in pairs(args) do
-        local len_arg = lent(v)
+        local len_arg = #v
         if not min_len then min_len = len_arg end
         if len_arg < min_len then min_len = len_arg end
     end
@@ -324,9 +350,14 @@ local function reduce(func, item)
     if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
     local res = nil
     local first = item[1]
-    for i = 2, lent(item) do
-        res = func(first, item[i])
-        first = res
+    local lenght = lent(item)
+    if lenght>1 then
+        for i = 2, lent(item) do
+            res = func(first, item[i])
+            first = res
+        end
+    else
+        res = func(first, first)
     end
     return res
 end
@@ -341,7 +372,6 @@ end
 
 local function randkey (item)
     if type(item) ~= 'table' then return nil end
-    math.randomseed(os.time())
     local index = math.random(1, lent(item))
     return keys(item)[index]
 end
@@ -364,7 +394,7 @@ local function shuffle(item)
 end
 
 -- test
-local function test ()
+local function test()
     print('when wrong values', gkv('lua', {42}))
 
     local target = {0, 1, gkv, 'whoami', ['lua'] = 'moon', ['bit'] = {0, 1}}
@@ -388,6 +418,7 @@ local function test ()
     gkv(repl(target,2))
 
     print('\nsplit')
+    gkv(split('code'))
     gkv(split('code lua 42 196', ' '))
     gkv(split(196,''))
     gkv(split('no sense','42'))
@@ -396,17 +427,7 @@ local function test ()
     gkv(slice(target,2,4,2))
 
     print('\nsep')
-    for _,v in pairs(sep(target,2)) do
-        print('done')
-        gkv(v)
-    end
-
-    print('\niter')
-    local itarget = iter(target)
-    print('first',itarget[1])
-    for i=1, itarget.n-1 do
-        print(itarget[i])
-    end
+    for _,v in pairs(sep(target,2)) do gkv(v) end
 
     print('\nclone',a ~= b)
     print('deep clone', a['bit'] ~= b['bit'])
@@ -422,6 +443,16 @@ local function test ()
     print('\niskey', iskey('bit', target)~=nil)
     print('\nisval')
     gkv(iskey('lua', target))
+
+    print('\niter')
+    local itarget = iter(target)
+    local rep = repl(itarget, 2)
+    print('first', itarget[1])
+    for i=1, #itarget do
+        print(itarget[i])
+    end
+    print('first from rep1',rep[1][1], 'first from rep2',rep[2][1])
+
 
     print('\nequal', equal(a, b))
     local complex_eq = partial(equal, {1,1})
@@ -461,7 +492,7 @@ local function test ()
     gkv(map(string.len, map(tostring, join(recursive, recursive['bit']))))
 
     local array = {16, 32, 64, 128}
-    local mixarr = {'moon', 'lua', 'code'}
+    local mixarr = {'moon', 'lua', 'code',0, false, nil}
     print('\nfilter')
     print('string only')
     gkv(filter(function(x) return type(x) == 'string' end, mixarr))
@@ -470,8 +501,22 @@ local function test ()
     print('len > 3')
     gkv(filter(function(x) return tostring(x):len() > 3 end , mixarr))
 
+    print('\nany')
+    print(any(array))
+    print(any(mixarr))
+    print(not any(map(function(x) return type(x)=='string' end, mixarr)))
+    print(any({false,nil}))
+    print(any({0,0,0}))
+
+    print('\nall')
+    print(all(array))
+    print(all(mixarr))
+    print(all(map(function(x) return type(x)=='string' end, mixarr)))
+    print(all({false,nil}))
+    print(all({0,0,0}))
+
     print('\nzip')
-    local zipped = zip(array,mixarr)
+    local zipped = zip(array, mixarr)
     map(gkv, zipped)
     print('unzip')
     local unzipped = zip(unpack(zipped))
@@ -479,7 +524,10 @@ local function test ()
     print('only for num keys')
     local key_tab = {['key'] = 'key'}
     local num_tab = {1, 0}
-    map(gkv, zip(key_tab,num_tab))
+    map(gkv, zip(key_tab, num_tab))
+    print('separate like sep')
+    local sep_two = zip(table.unpack(repl(iter(range(6)),2)))
+    map(gkv,sep_two)
 
     print('\nreduce')
     local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
@@ -511,9 +559,13 @@ local function test ()
 
     print('\nrandkey', target[randkey(target)])
     print('\nrandval', randval(target))
+    print('randval 100', randval(range(100)))
+    local rand100 = {}
+    for _=1, 10 do table.insert(rand100,randval(range(10))) end
+    print('randval table 10', gkv(rand100))
 
     print('\nshuffle')
-    gkv(shuffle(mixarr))
+    gkv(shuffle(target))
 
 end
 
@@ -521,12 +573,11 @@ end
 
 return { ['gkv'] = gkv, ['range'] = range,['lent'] = lent,
         ['repl'] = repl, ['split'] = split, ['reverse'] = reverse,
-        ['slice']=slice, ['sep']=sep, ['iter'] = iter,
-        ['clone'] = clone, ['copy'] = copy,
-        ['keys'] = keys,['iskey'] = iskey, ['isval'] = isval,
+        ['slice']=slice, ['sep']=sep, ['clone'] = clone, ['copy'] = copy,
+        ['keys'] = keys,['iskey'] = iskey, ['isval'] = isval, ['iter'] = iter,
         ['equal'] = equal, ['join'] = join,
         ['map'] = map, ['mapx'] = mapx, ['exem'] = exem, ['mapr'] = mapr,
-        ['filter'] = filter, ['zip'] = zip, ['reduce'] = reduce,
-        ['partial'] = partial, ['compose'] = compose,
+        ['filter'] = filter, ['any'] = any, ['all'] = all, ['zip'] = zip,
+        ['reduce'] = reduce, ['partial'] = partial, ['compose'] = compose,
         ['randkey'] = randkey, ['randval'] = randval, ['shuffle'] = shuffle,
         ['test'] = test }

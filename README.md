@@ -1,12 +1,12 @@
 # Fun-Lua
 
-Functional Library
+Functional Library (30 function + test)
 
 Copy fun.lua to the project folder or in the directory in LUA_PATH.
 
 Import module.
 ``` lua
-local fc = require(fun)
+local fc = require('fun')
 ```
 Run examples.
 ``` lua
@@ -39,19 +39,25 @@ keys - return keys of given table.
 
 iskey, isval - return {k, v} if key/value in given table if not return false.
 
+iter - make iterable from table and return values when call by index.
+
 equal - return true if tables equal.
 
 join - return table that created from given two arguments.
 
-map - call a function to each element in the given table.
+map - call a given function to each element in the given table.
 
-mapr - call a function to each element in the given table recursevly.
+mapr - call a given function to each element in the given table recursevly.
 
 mapx - apply a function to each element in the given table.
 
 exem - call every function in table.
 
 filter - filter table by given function.
+
+any - return true if any item in table not nil or false.
+
+all - return true if all item in table not nil or false.
 
 zip -  iterates through multiple tables, and aggregates them.
 
