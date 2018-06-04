@@ -1,6 +1,6 @@
 # Fun-Lua
 
-Functional Library (30 function + test)
+Functional Library (33 functions)
 
 Copy fun.lua to the project folder or in the directory in LUA_PATH.
 
@@ -8,18 +8,17 @@ Import module.
 ``` lua
 local fc = require('fun')
 ```
-Run examples.
-``` lua
-fc.test()
-```
+Look at examples in test.lua.
+
+Library has functions nofarg() and numfarg() for check errors in arguments.
 
 # Tool Box
 
-gkv - print key, values and type of given table.
+gkv - print key, values and type of the given table.
 
 lent - return number of all elements in the given table.
 
-keys - return keys of given table.
+keys - return keys of the given table.
 
 iskey, isval - return {k, v} if key/value in the given table if not return false.
 
@@ -33,17 +32,17 @@ split - convert string or number to the table.
 
 reverse - reverse table and put non number keys at the end.
 
-slice - return slice of given table.
+slice - return slice of the given table.
 
 sep - return table separated on n-tables.
 
-clone - return recursive copy of given table.
+clone - return recursive copy of the given table.
 
-copy - return first level copy of given table.
+copy - return first level copy of the given table.
 
-iter - make iterable from table and return values when call by index.
+iter - make iterable from the table and return values when call by index.
 
-equal - return true if tables equal.
+equal - return true if all elements in table1 equal for all elements in table2.
 
 join - return table that created from given two arguments.
 
@@ -55,7 +54,7 @@ mapr - call a given function to each element in the given table recursevly.
 
 mapx - apply a function to each element in the given table.
 
-exem - call every function in table.
+exem - call every function in the table.
 
 filter - filter table by given function.
 
@@ -73,8 +72,6 @@ compose - return function constructed from two functions provided in args.
 
 randkey, randval - return random key/value from the given table.
 
-shuff - return the mixed version of given table.
+shuff - return the mixed version of the given table.
 
-shuffknuth - return mixed version of given table (faster then shuff but only for number indexes).
-
-test - examples.
+shuffknuth - return mixed version of the given table (faster then shuff but only for number keys).

@@ -25,45 +25,57 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
--- 2.0
--- check metatables
--- copy vs clone
-
 -- 3.0
--- for 1 func
--- verbose
--- separate tests
--- save functions
+-- clear tests
+-- split return obj
 
 -- Tool Box
 -- gkv, lent, keys, iskey, isval, array, range, repl
--- split, reverse, slice, sep, clone, copy, iter, equal, join, merge,
+-- split, reverse, slice, sep, copy, clone, iter, equal, join, merge,
 -- map, mapr, mapx, exem, filter, any, all, zip, partial, reduce, compose,
 -- randkey, randval, shuff, shuffknuth
 
+-- Error traceback
+-- nofarg, numfarg
+
+if arg[0] then print('2.0 FUN Functional Tools (Lua)', arg[0]) end
+
 -- old lua version
 local unpack = table.unpack or unpack
+local utf8 = require('utf8')
 -- seed
 math.randomseed(os.time())
+-- errors
+local function numfarg(name)
+    for i=1,16 do k,v = debug.getlocal(3,i) if k==name then return i end end
+end
 
-local function gkv(item)
-    if type(item) ~= 'table' then return nil end
-    for k, v in pairs(item) do
-        print(k, v, type(v))
+local function nofarg(farg,name,expected)
+    if type(farg)~=expected then
+        local t1,t2,num
+        num = numfarg(name)
+        t1=string.format('%s: %s: bad argument #%d to', arg[-1], arg[0],num)
+        t2=string.format('(expected %s, got %s)', expected, type(farg))
+        fin=string.format('%s \'%s\' %s', t1, debug.getinfo(2)['name'], t2)
+        print(debug.traceback(fin,2))
+        os.exit(1)
     end
 end
 
+local function gkv(item)
+    nofarg(item,'item','table')
+    for k, v in pairs(item) do print(k, v, type(v)) end
+end
+
 local function lent(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local len = 0
-    for _ in pairs(item) do
-        len = len + 1
-    end
+    for _ in pairs(item) do len = len + 1 end
     return len
 end
 
 local function keys(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local arr = {}
     for k, _ in pairs(item) do
         arr[#arr+1] = k
@@ -72,103 +84,104 @@ local function keys(item)
 end
 
 local function iskey(key, item)
-    if not key or type(item) ~= 'table' then return false end
+    nofarg(item,'item','table')
+    if not key then return false end
     for k, v in pairs(item) do
-        if k == key then return {k,v} end
+        if k==key then return {k,v} end
     end
     return false
 end
 
 local function isval(val, item)
-    if not val or type(item) ~= 'table' then return false end
+    nofarg(item,'item','table')
+    if not val then return false end
     for k, v in pairs(item) do
-        if v == val then return {k,v} end
+        if v==val then return {k,v} end
     end
     return false
 end
 
 local function array(...)
-    local args = {...}
-    local start, fin, step = 0, args[1] or 0, 1
+    local fargs = {...}
+    local start, fin, step = 0, fargs[1] or 0, 1
 
-    if #args>1 and args[2]<0 then start=-1 fin=-args[1] step=args[2] end
+    if #fargs>1 and fargs[2]<0 then
+        start = -1 fin = -fargs[1] step = fargs[2]
+    end
 
-    local arr={}
-    for i=start, fin, step do arr[i]=0 end
+    local arr = {}
+    for i=start, fin, step do arr[i] = 0 end
     return arr
 end
 
 local function range(...)
-    local args = {...}
+    local fargs = {...}
     local start, fin
-    local step = args[3] or 1
+    local step = fargs[3] or 1
 
-    if #args==1 then
-        start = 1
-        fin = args[1]
-    elseif #args>=2 then
-        start = args[1]
-        fin = args[2]
+    local arr = {}
+    if #fargs==1 then
+        start, fin = 1, fargs[1]
+    elseif #fargs>=2 then
+        start, fin = fargs[1], fargs[2]
     else
-        return nil
+        return arr
     end
 
-    local arr = {}
-    for i=start, fin, step do arr[#arr+1]=i end
-    if #arr>0 then return arr else return nil end
-end
-
-local function repl(item, num)
-    local arr = {}
-    for i=1, num do
-        arr[i] = item
-    end
+    for i=start, fin, step do arr[#arr+1] = i end
     return arr
 end
 
-local function split(item, sep)
-    if (type(item) ~= 'string' and type(item) ~= 'number') then return nil end
-    item = tostring(item)
+local function repl(obj, num)
+    nofarg(num,'num','number')
+    local arr = {}
+    for i=1, num do arr[i] = obj end
+    return arr
+end
+
+local function split(obj, sep)
+    if (type(obj)~='string' and type(obj)~='number') then return obj end
+    obj = tostring(obj)
     sep = sep or ''
     local arr = {}
 
     local function utf8find(str,find)
         for i=1, utf8.len(str) do
-            local st=utf8.offset(str,i)
-            local fin=utf8.offset(str,i+1)-1
-            if str:sub(st, fin) == find then
+            local st = utf8.offset(str,i)
+            local fin = utf8.offset(str,i+1)-1
+            if str:sub(st, fin)==find then
                 return i
             end
         end
     end
 
-    if utf8find(item,sep) ~= nil then
-        while utf8find(item,sep)  do
-            local ind = utf8find(item,sep)
-            local st=utf8.offset(item,ind)
-            local fin=utf8.offset(item,ind+1)-1
-            arr[#arr+1] = item:sub(1, st-1)
-            item = item:sub(fin+1, -1)
+    if utf8find(obj,sep)~=nil then
+        while utf8find(obj,sep)  do
+            local ind = utf8find(obj,sep)
+            local st = utf8.offset(obj,ind)
+            local fin = utf8.offset(obj,ind+1)-1
+            arr[#arr+1] = obj:sub(1, st-1)
+            obj = obj:sub(fin+1, -1)
         end
 
-        arr[#arr+1] = item:sub(1, item:len())
+        arr[#arr+1] = obj:sub(1, obj:len())
     else
-        for i=1, utf8.len(item) do
-            local st=utf8.offset(item,i)
-            local fin=utf8.offset(item,i+1)-1
-            arr[i] = item:sub(st, fin)
+        for i=1, utf8.len(obj) do
+            local st = utf8.offset(obj,i)
+            local fin = utf8.offset(obj,i+1)-1
+            arr[i] = obj:sub(st, fin)
         end
     end
     return arr
 end
 
 local function reverse(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local arr = {}
     local meta = getmetatable(item)
     for k,v in pairs(item) do
-        if type(k) == 'number' then
-            arr[#item-k+1]=v
+        if type(k)=='number' then
+            arr[#item-k+1] = v
         else
             arr[k] = v
         end
@@ -178,20 +191,21 @@ local function reverse(item)
 end
 
 local function slice(item, start, fin, step)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
+    start = start or 1
     fin = fin or lent(item)
     step = step or 1
     local arr = {}
     local rang=range(start, fin, step)
     for i=1, #rang do
-        local key=keys(item)[rang[i]]
-        arr[key]=item[key]
+        local key = keys(item)[rang[i]]
+        arr[key] = item[key]
     end
     return arr
 end
 
 local function sep(item, num)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     num = num or 1
     local arr = {}
     for i=1, lent(item), num do
@@ -201,10 +215,17 @@ local function sep(item, num)
     return arr
 end
 
-local function clone(item)
-    if type(item) ~= 'table' then return nil end
+local function copy(item)
+    nofarg(item,'item','table')
     local arr = {}
-    local meta = getmetatable(item)
+    for k, v in pairs(item) do arr[k] = v end
+    return arr
+end
+
+local function clone(item)
+    nofarg(item,'item','table')
+    local arr = {}
+    local meta = copy(getmetatable(item) or {})
 
     for k, v in pairs(item) do
         if type(v) == 'table' then
@@ -217,15 +238,8 @@ local function clone(item)
     return arr
 end
 
-local function copy(item)
-    if type(item) ~= 'table' then return nil end
-    local arr = {}
-    for k, v in pairs(item) do arr[k] = v end
-    return arr
-end
-
 local function iter(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local tmp_item = clone(item)
     local arr = {}
     local meta = {}
@@ -249,46 +263,52 @@ local function iter(item)
 end
 
 local function equal(item1, item2)
-    if type(item1) ~= 'table' or type(item2) ~= 'table' then return nil end
+    nofarg(item1,'item1','table')
+    nofarg(item2,'item2','table')
     local len1 = lent(item1)
     local len2 = lent(item2)
-    if len1 ~= len2 then return false end
-    for i = 1, len1 do
-        if item1[i] ~= item2[i] then return false end
+    if len1~=len2 then return false end
+    for i=1, len1 do
+        if item1[i]~=item2[i] then return false end
     end
     return true
 end
 
 local function join(item1, item2)
-    if not item1 then return nil end
-    if type(item1) ~= 'table' then item1 = {item1} end
+    if type(item1)~='table' then item1 = {item1} end
     item2 = item2 or {}
-    if type(item2) ~= 'table' then item2 = {item2} end
+    if type(item2)~='table' then item2 = {item2} end
 
     local arr = clone(item1)
-    local meta = getmetatable(arr)
+    local meta = getmetatable(item2)
+
+    if meta and getmetatable(arr) then
+        for k, v in pairs(meta) do print(k,v) getmetatable(arr)[k] = v end
+    end
 
     for k, v in pairs(item2) do
-        if type(k) == 'number' then k = k + #item1 end
+        if type(k)=='number' then k = k + #item1 end
         arr[k] = v
     end
+
     setmetatable(arr, meta)
     return arr
 end
 
 local function merge(item1, item2)
-    if type(item1) ~= 'table' or type(item2) ~= 'table' then return nil end
-    local arr={}
-    local keys1=keys(item1)
-    local keys2=keys(item2)
+    nofarg(item1,'item1','table')
+    nofarg(item2,'item2','table')
+    local arr, keys1, keys2 = {}, keys(item1), keys(item2)
+
     for i=1, #keys1 do
-        arr[item1[keys1[i]]]=item2[keys2[i]]
+        arr[item1[keys1[i]]] = item2[keys2[i]]
     end
     return arr
 end
 
 local function map(func, item)
-    if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
+    nofarg(func,'func','function')
+    nofarg(item,'item','table')
     local arr = {}
     for k, v in pairs(item) do
         arr[k] = func(v)
@@ -297,10 +317,10 @@ local function map(func, item)
 end
 
 local function mapr(func, item)
-    if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
+    if type(func)~='function' or type(item)~='table' then return nil end
     local arr = {}
     for k, v in pairs(item) do
-        if type(v) == 'table' then
+        if type(v)=='table' then
             arr[k] = mapr(func, v)
         else
             arr[k] = func(v)
@@ -310,7 +330,8 @@ local function mapr(func, item)
 end
 
 local function mapx(func, item)
-    if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
+    nofarg(func,'func','function')
+    nofarg(item,'item','table')
     local arr = {}
     for k, v in pairs(item) do
         arr[k] = function () return func(v) end
@@ -319,17 +340,18 @@ local function mapx(func, item)
 end
 
 local function exem(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local arr = {}
     for k, v in pairs(item) do
-        if type(v) ~= 'function' then arr[k] = v end
+        if type(v)~='function' then arr[k] = v end
         arr[k] = v()
     end
     return arr
 end
 
 local function filter(func, item)
-    if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
+    nofarg(func,'func','function')
+    nofarg(item,'item','table')
     local arr = {}
     for k, v in pairs(item) do
         if func(v) then arr[k] = v end
@@ -338,25 +360,24 @@ local function filter(func, item)
 end
 
 local function any(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     for _,v in pairs(item) do if v then return true end end
     return false
 end
 
 local function all(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     for _,v in pairs(item) do if not v then return false end end
     return true
 end
 
 local function zip(...)
-    local args = filter(function(item)
-                        if type(item) == 'table' then return true end end,
-                        {...})
-    if next(args) == nil then return nil end
+    local fargs = filter(function(item)
+                    if type(item)=='table' then return true end end, {...})
+    nofarg(fargs[1],'fargs','table')
 
     local min_len = false
-    for _, v in pairs(args) do
+    for _, v in pairs(fargs) do
         local len_arg
         if getmetatable(v) and getmetatable(v).__len then
             len_arg = #v
@@ -369,18 +390,18 @@ local function zip(...)
 
     local arr = {}
     for i=1, min_len do
-        arr[i] = map(function(item) return item[i] end, args)
+        arr[i] = map(function(item) return item[i] end, fargs)
     end
     return arr
 end
 
 local function partial(func, ...)
-    if type(func) ~= 'function' then return nil end
-    local args = {...}
+    nofarg(func,'func','function')
+    local fargs = {...}
 
     local function inner(...)
-        local new_args = {...}
-        local res = join(args, new_args)
+        local new_fargs = {...}
+        local res = join(fargs, new_fargs)
 
         return func(unpack(res, 1, lent(res)))
     end
@@ -388,12 +409,13 @@ local function partial(func, ...)
 end
 
 local function reduce(func, item)
-    if type(func) ~= 'function' or type(item) ~= 'table' then return nil end
+    nofarg(func,'func','function')
+    nofarg(item,'item','table')
     local res = nil
     local first = item[1]
     local lenght = lent(item)
     if lenght>1 then
-        for i = 2, lent(item) do
+        for i=2, lent(item) do
             res = func(first, item[i])
             first = res
         end
@@ -404,15 +426,16 @@ local function reduce(func, item)
 end
 
 local function compose(func, wrap)
-    if type(func) ~= 'function' then return nil end
-    local function inner ( ... )
-        return reduce(function(x, y) return  y(x) end, {wrap( ... ), func})
+    nofarg(func,'func','function')
+    nofarg(wrap,'wrap','function')
+    local function inner(...)
+        return reduce(function(x, y) return  y(x) end, {wrap(...), func})
     end
     return inner
 end
 
 local function randkey (item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local index = math.random(1, lent(item))
     return keys(item)[index]
 end
@@ -422,13 +445,13 @@ local function randval(item)
 end
 
 local function shuff(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local arr = {}
     local tmp_item = clone(item)
     for i=1, lent(tmp_item) do
         local index = randkey(tmp_item)
         local key = index
-        if type(index) == 'number' then key = i end
+        if type(index)=='number' then key = i end
         arr[key] = tmp_item[index]
         tmp_item[index] = nil
     end
@@ -436,230 +459,22 @@ local function shuff(item)
 end
 
 local function shuffknuth(item)
-    if type(item) ~= 'table' then return nil end
+    nofarg(item,'item','table')
     local arr = clone(item)
-    for i = #arr, 1, -1 do
+    for i=#arr, 1, -1 do
         local index = math.random(#arr)
         arr[i], arr[index] = arr[index], arr[i]
     end
     return arr
 end
 
-
-local function test()
-    print('when wrong values', gkv('lua', {42}))
-
-    local target = {0, 1, gkv, 'whoami', ['lua'] = 'moon', ['bit'] = {0, 1}}
-
-    print('gkv')
-    gkv(target)
-
-    print('\nlent', lent(target), #target)
-
-    print('\nkeys')
-    gkv((keys(target)))
-
-    print('\niskey', iskey('bit', target)~=nil)
-    print('\nisval')
-    gkv(iskey('lua', target))
-
-    print('\narray')
-    local zero_arr = array()
-    local pos_arr = array(3)
-    local neg_arr = array(3,-1)
-    gkv(zero_arr)
-    gkv(pos_arr)
-    gkv(neg_arr)
-
-    print('\nrange')
-    gkv((range(1,5,2)))
-    for i=1, #range(3) do
-        print('range',i)
-    end
-    gkv(range(5,1,-1))
-
-    print('\nrepl')
-    gkv(repl('lua',4))
-    gkv(repl(target,2))
-
-    print('\nsplit')
-    gkv(split('code'))
-    gkv(split('code lua 42 196', ' '))
-    gkv(split(196,''))
-    gkv(split('no sense','42'))
-    gkv(split('⌘ utf8 й', ' '))
-    gkv(split('⌘ utf8 й', ''))
-    gkv(split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
-
-    print('\nreverse')
-    gkv(reverse(target))
-    print(table.concat(reverse({0,4,2,1})))
-
-    print('\nslice')
-    gkv(slice({1,2,3,'lua'},2,4,2))
-
-    gkv(slice(target,2))
-    gkv(slice(target,2,#target))
-
-    print('\nsep')
-    for _,v in pairs(sep(target,2)) do gkv(v) end
-
-    local a = clone(target)
-    local b = clone(target)
-    print('\nclone',a ~= b)
-    print('deep clone', a['bit'] ~= b['bit'])
-
-    a = copy(target)
-    b = copy(target)
-    print('\ncopy', a ~= b)
-    print('copy first level', a['bit'] ~= b['bit'])
-
-    print('\niter')
-    local itarget = iter(target)
-    local rep = repl(itarget, 2)
-    print('first', itarget[1])
-    for i=1, #itarget do
-        print(itarget[i])
-    end
-    print('first from rep1',rep[1][1], 'first from rep2',rep[2][1])
-
-    print('\nequal', equal(a, b))
-    local complex_eq = partial(equal, {1,1})
-    gkv(map(complex_eq, {{1,0},{0,1},{0,0},{1,1}}))
-
-    print('\njoin')
-    print('no args',join())
-    gkv(join(target, {'join', zero = 0}))
-    print('join tables and values')
-    gkv(join({1,0}, 42))
-    print('join vargs')
-    gkv(reduce(join, {{1,0}, 42, {['lua']=1993}, {196,['code']='lua'}}))
-
-    print('\nmerge')
-    local mer_val_val = merge({'lua','code'},array(2))
-    gkv(mer_val_val)
-
-    print('\nmap')
-    gkv(map(table.concat, {{'map'}, {0,1}}))
-    gkv(map(tostring, range(1,3)))
-    print('len all items')
-    gkv(map(string.len, map(tostring, target)))
-    print('print values')
-    map(print, target)
-
-    print('\nmapx')
-    local python3_map = mapx(tostring, target)
-    gkv(python3_map)
-    print('\nexem')
-    gkv(exem(mapx(string.len, exem(python3_map))))
-
-    print('\nmapr')
-    local recursive = mapr(tostring, target)
-    gkv(recursive)
-    print('string in table')
-    gkv(recursive['bit'])
-    print('print all items recursevly')
-    mapr(print, target)
-    print('len all items recursevly')
-    gkv(map(string.len, map(tostring, join(recursive, recursive['bit']))))
-
-    local arr = {16, 32, 64, 128}
-    local mixarr = {'moon', 'lua', 'code',0, false, nil}
-    print('\nfilter')
-    print('string only')
-    gkv(filter(function(x) return type(x) == 'string' end, mixarr))
-    print('> 0')
-    gkv(filter(function (x) return x > 32 end, arr))
-    print('len > 3')
-    gkv(filter(function(x) return tostring(x):len() > 3 end , mixarr))
-
-    print('\nany')
-    print(any(arr))
-    print(any(mixarr))
-    print(not any(map(function(x) return type(x)=='string' end, mixarr)))
-    print(any({false,nil}))
-    print(any({0,0,0}))
-
-    print('\nall')
-    print(all(arr))
-    print(all(mixarr))
-    print(all(map(function(x) return type(x)=='string' end, mixarr)))
-    print(all({false,nil}))
-    print(all({0,0,0}))
-
-    print('\nzip')
-    local zipped = zip(arr, mixarr)
-    map(gkv, zipped)
-    print('unzip')
-    local unzipped = zip(unpack(zipped))
-    map(gkv, unzipped)
-    print('only for num keys')
-    local key_tab = {['key'] = 'key'}
-    local num_tab = {1, 0}
-    map(gkv, zip(key_tab, num_tab))
-    print('zip like sep')
-    local sep_two = zip(unpack(repl(iter(range(6)),2)))
-    map(gkv,sep_two)
-    print('zip two iter')
-    local iter_zip = zip(unpack(repl(iter(target),2)))
-    map(gkv,iter_zip)
-
-    -- print('\nreduce')
-    -- local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
-    -- print(reduce(function(x, y) return  x + y end, {1,2,4,8,16,32,64,128}))
-    -- print('flat table')
-    -- gkv(reduce(join,nested))
-
-    -- print('\npartial')
-    -- print('make print # function')
-    -- local print_she = partial(print, '#')
-    -- print_she('whoami','code')
-    -- print('make map to string function')
-    -- local mapstr = partial(map, tostring)
-    -- gkv(mapstr(arr))
-    -- print('make filter for numbers')
-    -- local filter_str = partial(filter,
-    --                            function(x) return type(x) == 'number' end)
-    -- gkv(filter_str(mixarr))
-
-    -- print('\ncompose')
-    -- print('make lent for all items')
-    -- local maplent = partial(map, string.len)
-    -- print('exclude gkv')
-    -- local no_gkv = compose(gkv, mapstr)
-    -- no_gkv(mixarr)
-    -- print('exclude lent')
-    -- local no_lent = compose(maplent, compose(mapstr, filter_str))
-    -- gkv(no_lent(mixarr))
-
-    -- print('\nrandkey', target[randkey(target)])
-    -- print('\nrandval', randval(target))
-    -- print('randval 100', randval(range(100)))
-    -- local rand100 = {}
-    -- for _=1, 10 do table.insert(rand100,randval(range(10))) end
-    -- print('randval table 10', gkv(rand100))
-
-    -- print('\nshuff')
-    -- local shuffle_tar=shuff(target)
-    -- gkv(shuffle_tar)
-    -- gkv(target)
-
-    -- print('\nshuffknuth')
-    -- local shuffle_k = shuffknuth(target)
-    -- gkv(shuffle_k)
-    -- gkv(target)
-end
-
--- test()
-
 return { ['gkv'] = gkv, ['lent'] = lent, ['keys'] = keys,['iskey'] = iskey,
         ['isval'] = isval, ['array'] = array, ['range'] = range,
         ['repl'] = repl, ['split'] = split, ['reverse'] = reverse,
-        ['slice']=slice, ['sep']=sep, ['clone'] = clone, ['copy'] = copy,
+        ['slice']=slice, ['sep']=sep, ['copy'] = copy,['clone'] = clone,
         ['iter'] = iter, ['equal'] = equal, ['join'] = join,['merge'] = merge,
         ['map'] = map, ['mapx'] = mapx, ['exem'] = exem, ['mapr'] = mapr,
         ['filter'] = filter, ['any'] = any, ['all'] = all, ['zip'] = zip,
         ['reduce'] = reduce, ['partial'] = partial, ['compose'] = compose,
         ['randkey'] = randkey, ['randval'] = randval, ['shuff'] = shuff,
-        ['shuffknuth'] = shuffknuth,
-        ['test'] = test}
+        ['shuffknuth'] = shuffknuth}
