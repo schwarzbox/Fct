@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 -- FUN
 -- 2.0
--- Functional Tools (Lua)
+-- Functional Tools (lua)
 -- fun.lua
 
 -- MIT License
@@ -30,8 +30,9 @@
 -- split return obj
 
 -- Tool Box
--- gkv, lent, keys, iskey, isval, array, range, repl
--- split, reverse, slice, sep, copy, clone, iter, equal, join, merge,
+-- gkv, lent, count, keys, iskey, isval, array, range, repl
+-- split, reverse, slice, sep, copy, clone, iter,
+-- equal, join, valval, merge, same, uniq,
 -- map, mapr, mapx, exem, filter, any, all, zip, partial, reduce, compose,
 -- randkey, randval, shuff, shuffknuth
 
@@ -74,6 +75,15 @@ local function lent(item)
     return len
 end
 
+local function count(val, item)
+    nofarg(item,'item','table')
+    local res = 0
+    for _,v in pairs(item) do
+        if v==val then res = res + 1 end
+    end
+    return res
+end
+
 local function keys(item)
     nofarg(item,'item','table')
     local arr = {}
@@ -85,7 +95,7 @@ end
 
 local function iskey(key, item)
     nofarg(item,'item','table')
-    if not key then return false end
+    if key==nil then return false end
     for k, v in pairs(item) do
         if k==key then return {k,v} end
     end
@@ -94,7 +104,7 @@ end
 
 local function isval(val, item)
     nofarg(item,'item','table')
-    if not val then return false end
+    if val==nil then return false end
     for k, v in pairs(item) do
         if v==val then return {k,v} end
     end
@@ -268,8 +278,8 @@ local function equal(item1, item2)
     local len1 = lent(item1)
     local len2 = lent(item2)
     if len1~=len2 then return false end
-    for i=1, len1 do
-        if item1[i]~=item2[i] then return false end
+    for k,v in pairs(item1) do
+        if v~=item2[k] then return false end
     end
     return true
 end
@@ -280,28 +290,76 @@ local function join(item1, item2)
     if type(item2)~='table' then item2 = {item2} end
 
     local arr = clone(item1)
-    local meta = getmetatable(item2)
 
-    if meta and getmetatable(arr) then
-        for k, v in pairs(meta) do print(k,v) getmetatable(arr)[k] = v end
+    for k, v in pairs(getmetatable(item2) or {}) do
+        getmetatable(arr)[k] = v
     end
 
     for k, v in pairs(item2) do
-        if type(k)=='number' then k = k + #item1 end
-        arr[k] = v
+        if type(k)=='number' then k = #arr+1 end
+        if type(v) == 'table' then arr[k] = clone(v)
+        else arr[k] = v end
     end
 
-    setmetatable(arr, meta)
     return arr
 end
 
-local function merge(item1, item2)
+local function valval(item1, item2)
     nofarg(item1,'item1','table')
     nofarg(item2,'item2','table')
     local arr, keys1, keys2 = {}, keys(item1), keys(item2)
 
     for i=1, #keys1 do
         arr[item1[keys1[i]]] = item2[keys2[i]]
+    end
+    return arr
+end
+
+local function merge(item1,item2)
+    nofarg(item1,'item1','table')
+    nofarg(item2,'item2','table')
+    local arr = {}
+
+    for k, v in pairs(item1) do
+        if not isval(v,arr)  then
+            if type(k)=='number' then k = #arr+1  end
+            arr[k] = v
+        end
+    end
+
+    for k, v in pairs(item2) do
+        if not isval(v,arr) then
+            if type(k)=='number' then k = #arr+1 end
+            arr[k] = v
+        end
+    end
+    return arr
+end
+
+local function same(item1, item2)
+    nofarg(item1,'item1','table')
+    nofarg(item2,'item2','table')
+    local arr = {}
+
+    for k, v in pairs(item1) do
+        if isval(v,item2) and not isval(v,arr) then
+            if type(k)=='number' then k = #arr+1 end
+            arr[k] = v
+        end
+    end
+    return arr
+end
+
+local function uniq(item1, item2)
+    nofarg(item1,'item1','table')
+    nofarg(item2,'item2','table')
+    local arr = {}
+
+    for k, v in pairs(item1) do
+        if not isval(v,item2) and not isval(v,arr) then
+            if type(k)=='number' then k = #arr+1 end
+            arr[k] = v
+        end
     end
     return arr
 end
@@ -468,11 +526,13 @@ local function shuffknuth(item)
     return arr
 end
 
-return { ['gkv'] = gkv, ['lent'] = lent, ['keys'] = keys,['iskey'] = iskey,
-        ['isval'] = isval, ['array'] = array, ['range'] = range,
-        ['repl'] = repl, ['split'] = split, ['reverse'] = reverse,
-        ['slice']=slice, ['sep']=sep, ['copy'] = copy,['clone'] = clone,
-        ['iter'] = iter, ['equal'] = equal, ['join'] = join,['merge'] = merge,
+return { ['gkv'] = gkv, ['lent'] = lent, ['count']=count,
+        ['keys'] = keys,['iskey'] = iskey, ['isval'] = isval,
+        ['array'] = array, ['range'] = range, ['repl'] = repl,
+        ['split'] = split, ['reverse'] = reverse, ['slice']=slice,
+        ['sep']=sep, ['copy'] = copy,['clone'] = clone, ['iter'] = iter,
+        ['equal'] = equal, ['join'] = join,['valval'] = valval,
+        ['merge'] = merge, ['same'] = same, ['uniq'] = uniq,
         ['map'] = map, ['mapx'] = mapx, ['exem'] = exem, ['mapr'] = mapr,
         ['filter'] = filter, ['any'] = any, ['all'] = all, ['zip'] = zip,
         ['reduce'] = reduce, ['partial'] = partial, ['compose'] = compose,

@@ -14,6 +14,8 @@ local function test()
 
     print('\nlent', fc.lent(target), #target)
 
+    print('\ncount', fc.count(0,target))
+
     print('\nkeys')
     fc.gkv((fc.keys(target)))
 
@@ -95,6 +97,7 @@ local function test()
     print('first from rep1',rep[1][1], 'first from rep2',rep[2][1])
 
     print('\nequal', fc.equal(a, b))
+    print(fc.equal(target,target))
     local complex_eq = fc.partial(fc.equal, {1,1})
     fc.gkv(fc.map(complex_eq, {{1,0},{0,1},{0,0},{1,1}}))
 
@@ -106,16 +109,25 @@ local function test()
     print('join fargs')
     fc.gkv(fc.reduce(fc.join, {{1,0},42,{['lua']=1993},{196,['code']='lua'}}))
     print('join metatable')
-    local tab2 = {42,['code']={}}
-    local meta2=setmetatable(tab2, {__index=tab2,__tostring=function(self)
+    local tab2 = {42,['code']={'lua',1993}}
+    setmetatable(tab2, {__index=tab2,__tostring=function(self)
                                             return 'meta2' end})
     print('join with metatable')
-    local meta_join=fc.join(0, meta2)
-    print(meta_join)
+    local meta_join=fc.join(0, tab2)
+    print(meta_join, meta_join.code==tab2.code)
+
+    print('\nvalval')
+    local mer_val_val = fc.valval({'lua','code'},fc.array(2))
+    fc.gkv(mer_val_val)
 
     print('\nmerge')
-    local mer_val_val = fc.merge({'lua','code'},fc.array(2))
-    fc.gkv(mer_val_val)
+    fc.gkv(fc.merge(target,{0,1,42}))
+
+    print('\nsame')
+    fc.gkv(fc.same(target,{0,1,42}))
+
+    print('\nuniq')
+    fc.gkv(fc.uniq(target,{0,1,42}))
 
     print('\nmap')
     fc.gkv(fc.map(table.concat, {{'map'}, {0,1}}))
@@ -230,7 +242,7 @@ local function test()
     fc.gkv(target)
 
     print('error when wrong values')
-    fc.gkv('lua')
+    -- fc.gkv('lua')
 end
 
 test()
