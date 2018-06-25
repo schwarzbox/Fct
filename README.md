@@ -1,12 +1,12 @@
-# Fun-Lua
+# Fct-Lua
 
 Functional Library (37 functions)
 
-Copy fun.lua to the project folder or in the directory in LUA_PATH.
+Copy fct.lua to the project folder or in the directory in LUA_PATH.
 
 Import module.
 ``` lua
-local fc = require('fun')
+local fc = require('fct')
 ```
 Look at examples in test.lua.
 

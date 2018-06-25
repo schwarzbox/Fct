@@ -1,9 +1,9 @@
 #!/usr/bin/env lua
 -- Mon Jun  4 17:45:53 2018
 -- (c) Alexander Veledzimovich
--- test FUN
+-- test FCT
 
-local fc=require('fun')
+local fc=require('fct')
 -- old lua version
 local unpack = table.unpack or unpack
 
@@ -63,13 +63,13 @@ local function test()
     print('\nsep')
     for _,v in pairs(fc.sep(target,2)) do fc.gkv(v) end
 
-    a = fc.copy(target)
-    b = fc.copy(target)
+    local a = fc.copy(target)
+    local b = fc.copy(target)
     print('\ncopy', a ~= b)
     print('copy first level', a['bit'] ~= b['bit'])
 
-    local a = fc.clone(target)
-    local b = fc.clone(target)
+    a = fc.clone(target)
+    b = fc.clone(target)
     print('\nclone',a ~= b)
     print('deep clone', a['bit'] ~= b['bit'])
 
@@ -110,7 +110,7 @@ local function test()
     fc.gkv(fc.reduce(fc.join, {{1,0},42,{['lua']=1993},{196,['code']='lua'}}))
     print('join metatable')
     local tab2 = {42,['code']={'lua',1993}}
-    setmetatable(tab2, {__index=tab2,__tostring=function(self)
+    setmetatable(tab2, {__index=tab2,__tostring=function(_)
                                             return 'meta2' end})
     print('join with metatable')
     local meta_join=fc.join(0, tab2)
@@ -136,6 +136,10 @@ local function test()
     fc.gkv(fc.map(string.len, fc.map(tostring, target)))
     print('print values')
     fc.map(print, target)
+    print('use map for varg with zip like in python map')
+    fc.map(print,unpack(fc.zip(target,{1,42,196})))
+    print('use straight')
+    fc.map(print,target,{0,1},'whoami',{code='lua'})
 
     print('\nmapx')
     local python3_map = fc.mapx(tostring, target)
