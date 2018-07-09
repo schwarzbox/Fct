@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 -- FCT
--- 2.0
+-- 2.5
 -- Functional Tools (lua)
 -- fct.lua
 
@@ -27,11 +27,10 @@
 
 -- 3.0
 -- clear tests
--- split return obj
 
 -- Tool Box
--- gkv, lent, count, keys, iskey, isval, array, range, repl
--- split, reverse, slice, sep, copy, clone, iter,
+-- gkv, lent, count, keys, iskey, isval, zarray, range, repl
+-- cut, concat, reverse, slice, sep, copy, clone, iter,
 -- equal, join, valval, merge, same, uniq,
 -- map, mapr, mapx, exem, filter, any, all, zip, partial, reduce, compose,
 -- randkey, randval, shuff, shuffknuth
@@ -114,7 +113,7 @@ function FCT.isval(val, item)
     return false
 end
 
-function FCT.array(...)
+function FCT.zarray(...)
     local fargs = {...}
     local start, fin, step = 0, fargs[1] or 0, 1
 
@@ -152,9 +151,9 @@ function FCT.repl(obj, num)
     return arr
 end
 
-function FCT.split(obj, sep)
-    if (type(obj)~='string' and type(obj)~='number') then return obj end
-    obj = tostring(obj)
+function FCT.cut(obj, sep)
+    if type(obj)=='number' then obj = tostring(obj) end
+    nofarg(obj,'obj','string')
     sep = sep or ''
     local arr = {}
 
@@ -188,6 +187,17 @@ function FCT.split(obj, sep)
     return arr
 end
 
+function FCT.concat(item,sep)
+    nofarg(item,'item','table')
+    sep = sep or ''
+    local str = ''
+    for _,v in pairs(item) do
+        str=str..tostring(v)..sep
+    end
+    if sep~='' then str=str:sub(1,#str-1) end
+    return str
+end
+
 function FCT.reverse(item)
     nofarg(item,'item','table')
     local arr = {}
@@ -206,7 +216,7 @@ end
 function FCT.slice(item, start, fin, step)
     nofarg(item,'item','table')
     start = start or 1
-    fin = fin or FCT.lent(item)
+    if not fin or fin>FCT.lent(item) then fin = FCT.lent(item) end
     step = step or 1
     local arr = {}
     local rang = FCT.range(start, fin, step)
@@ -223,6 +233,7 @@ function FCT.sep(item, num)
     local arr = {}
     for i=1, FCT.lent(item), num do
         local tmp_item = FCT.slice(item,i,num+i-1)
+        FCT.lent(tmp_item)
         if FCT.lent(tmp_item) == num then arr[#arr+1] = tmp_item end
     end
     return arr
@@ -303,7 +314,6 @@ function FCT.join(item1, item2)
         if type(v) == 'table' then arr[k] = FCT.clone(v)
         else arr[k] = v end
     end
-
     return arr
 end
 
@@ -329,7 +339,6 @@ function FCT.merge(item1,item2)
             arr[k] = v
         end
     end
-
     for k, v in pairs(item2) do
         if not FCT.isval(v,arr) then
             if type(k)=='number' then k = #arr+1 end
@@ -360,6 +369,12 @@ function FCT.uniq(item1, item2)
 
     for k, v in pairs(item1) do
         if not FCT.isval(v,item2) and not FCT.isval(v,arr) then
+            if type(k)=='number' then k = #arr+1 end
+            arr[k] = v
+        end
+    end
+    for k, v in pairs(item2) do
+        if not FCT.isval(v,item1) and not FCT.isval(v,arr) then
             if type(k)=='number' then k = #arr+1 end
             arr[k] = v
         end

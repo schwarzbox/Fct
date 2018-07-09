@@ -1,6 +1,6 @@
 # Fct-Lua
 
-Functional Library (37 functions)
+Functional Library (38 functions)
 
 Copy fct.lua to the project folder or in the directory in LUA_PATH.
 
@@ -30,7 +30,9 @@ range - return table with numbers.
 
 repl - replicate item n-times and return table of items.
 
-split - convert string or number to the table.
+cut - convert string or number to the table.
+
+concat - convert table (with any keys) to the string.
 
 reverse - reverse table and put non number keys at the end.
 
