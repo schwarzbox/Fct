@@ -20,11 +20,11 @@ lent - return number of all elements in the given table.
 
 count - return count of how many times a given object occurs in given table.
 
-keys - return keys of the given table.
+keys, vals - return keys/vals of the given table.
 
 iskey, isval - return {k, v} if key/value in the given table if not return false.
 
-array - create zero array with positive or negative indexes.
+ztab - create zero table with positive or negative indexes.
 
 range - return table with numbers.
 
@@ -32,9 +32,9 @@ repl - replicate item n-times and return table of items.
 
 cut - convert string or number to the table.
 
-concat - convert table (with any keys) to the string.
-
 reverse - reverse table and put non number keys at the end.
+
+isort - return iterator which allow to sort and reverse table keys/values.
 
 slice - return slice of the given table.
 
@@ -50,7 +50,7 @@ equal - return true if all elements(key,value) in table1 equal for all elements 
 
 join - return table that created from given two arguments.
 
-valval - return table that created with keys from the first table and values from the second.
+valval - return table that created with values from the first table and values from the second.
 
 merge - return table without duplicate values from the two tables.
 
@@ -61,10 +61,6 @@ uniq - return table with uniq values from the two tables.
 map - call a given function to each element in the given table.
 
 mapr - call a given function to each element in the given table recursevly.
-
-mapx - apply a function to each element in the given table.
-
-exem - call every function in the table.
 
 filter - filter table by given function.
 
@@ -79,6 +75,8 @@ partial - return function with fixed first argument.
 reduce - call a function to each element in the table to reduce the table to a single value.
 
 compose - return function constructed from two functions provided in args.
+
+randtab - return table with random values.
 
 randkey, randval - return random key/value from the given table.
 
