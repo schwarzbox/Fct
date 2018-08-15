@@ -75,13 +75,8 @@ local function test()
     print('\nsep')
     fc.map(fc.gkv,fc.sep(target,2))
 
-    local a = fc.copy(target)
-    local b = fc.copy(target)
-    print('\ncopy', a ~= b)
-    print('copy first level', a['bit'] ~= b['bit'])
-
-    a = fc.clone(target)
-    b = fc.clone(target)
+    local a = fc.clone(target)
+    local b = fc.clone(target)
     print('\nclone',a ~= b)
     print('deep clone', a['bit'] ~= b['bit'])
     print('meta clone')
@@ -103,8 +98,8 @@ local function test()
     local rep = fc.repl(itarget, 2)
     print('first', itarget[1])
     print('never use fc.lent() with iter')
-    for i=1, #itarget do
-        print(itarget[i])
+    for i=1, #rep[1] do
+        print(rep[1][i])
     end
     print('first from rep1',rep[1][1], 'first from rep2',rep[2][1])
 
@@ -120,13 +115,13 @@ local function test()
     fc.gkv(fc.join({1,0}, 42))
     print('join fargs')
     fc.gkv(fc.reduce(fc.join, {{1,0},42,{['lua']=1993},{196,['code']='lua'}}))
-    print('join metatable')
+    print('join with metatable')
     local tab2 = {42,['code']={'lua',1993}}
     setmetatable(tab2, {__index=tab2,__tostring=function(_)
                                             return 'meta2' end})
-    print('join with metatable')
+
     local meta_join=fc.join(0, tab2)
-    print(meta_join, meta_join.code==tab2.code)
+    print(meta_join,'meta_join.code==tab2.code', meta_join.code==tab2.code)
 
 
     print('\nvalval')
@@ -237,6 +232,12 @@ local function test()
     local no_lent = fc.compose(maplent, fc.compose(mapstr, filter_str))
     fc.gkv(no_lent(mixarr))
 
+    print('\npermutation')
+    local mut=fc.permutation(fc.range(3))
+    fc.map(function(x) print(table.concat(x,' ')) end, mut)
+    local mut=fc.permutation({'a','b','c'})
+    fc.map(function(x) print(table.concat(x,' ')) end, mut)
+
     print('\nrandtab')
     fc.gkv(fc.randtab(8))
     print('\nrandkey', target[fc.randkey(target)])
@@ -250,7 +251,9 @@ local function test()
     print('shuffle_tar')
     fc.gkv(shuffle_tar)
 
-    print('\nshuffknuth',fc.gkv(fc.shuffknuth(fc.range(10)),' '))
+    print('\nshuffknuth')
+    fc.gkv(fc.shuffknuth(fc.range(10)),' ')
+
     local shuffle_k = fc.shuffknuth(target)
     print('target')
     fc.gkv(target)

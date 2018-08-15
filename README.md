@@ -1,6 +1,6 @@
 # Fct-Lua
 
-Functional Library (38 functions)
+Functional Library (39 functions)
 
 Copy fct.lua to the project folder or in the directory in LUA_PATH.
 
@@ -40,8 +40,6 @@ slice - return slice of the given table.
 
 sep - return table separated on n-tables.
 
-copy - return first level copy of the given table.
-
 clone - return recursive copy of the given table.
 
 iter - make iterable from the table and return values when call by index.
@@ -75,6 +73,8 @@ partial - return function with fixed first argument.
 reduce - call a function to each element in the table to reduce the table to a single value.
 
 compose - return function constructed from two functions provided in args.
+
+permutation - return table of tables with all permutation for a given table.
 
 randtab - return table with random values.
 
