@@ -12,7 +12,7 @@ local function test()
     print('gkv')
     fc.gkv(target)
 
-    print('\nlent', fc.lent(target), #target)
+    print('\nlent', fc.len(target), #target)
 
     print('\ncount', fc.count(0,target))
 
@@ -26,35 +26,40 @@ local function test()
     print('\nisval')
     fc.gkv(fc.iskey('lua', target))
 
-    print('\nztab')
-    local zero_arr = fc.ztab()
-    local pos_arr = fc.ztab(3)
-    fc.gkv(zero_arr)
-    fc.gkv(pos_arr)
-    print('zero matrix')
-    local matrix = {}
-    for i=1,2 do matrix[i]=fc.ztab(8) end
-    fc.map(function(x) print(table.concat(x,' ')) end,matrix)
+    print('\nflip')
+    local days = {'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                      'Thursday', 'Friday', 'Saturday'}
+    local revdays = fc.flip(days)
+    fc.gkv(revdays)
+    print(fc.isval('Sunday',days)[1])
 
     print('\nrange')
+    fc.gkv(fc.range())
+
     fc.gkv(fc.range(1,5,2))
     fc.gkv(fc.range(3,1,-1))
     for i=1, #fc.range(3) do
         print('range',i)
     end
 
-    print('\nrepl')
-    fc.gkv(fc.repl('lua',4))
-    fc.gkv(fc.repl(target,2))
+    print('\nrep')
+    fc.gkv(fc.rep('lua',4))
+    fc.gkv(fc.rep(target,2))
+    print('randtab')
+    fc.gkv(fc.rep(math.random(),4))
+    print('matrix')
+    local matrix = {}
+    for i=1,2 do matrix[i]=fc.rep(0,8) end
+    print(table.concat(matrix[1],' '),table.concat(matrix[2],' '))
 
-    print('\ncut')
-    fc.gkv(fc.cut('code'))
-    fc.gkv(fc.cut('code lua 42 196', ' '))
-    fc.gkv(fc.cut(196,''))
-    fc.gkv(fc.cut('no sense','42'))
-    fc.gkv(fc.cut('⌘ utf8 й', ' '))
-    fc.gkv(fc.cut('⌘ utf8 й', ''))
-    fc.gkv(fc.cut('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
+    print('\nsplit')
+    fc.gkv(fc.split('code'))
+    fc.gkv(fc.split('code lua 42 196', ' '))
+    fc.gkv(fc.split(196,''))
+    fc.gkv(fc.split('no sense','42'))
+    fc.gkv(fc.split('⌘ utf8 й', ' '))
+    fc.gkv(fc.split('⌘ utf8 й', ''))
+    fc.gkv(fc.split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
 
     print('\nreverse')
     fc.gkv(fc.reverse(target))
@@ -62,7 +67,7 @@ local function test()
 
     print('\nisort')
     local code={['lua']=1993,['c']=1970,['swift']=2013}
-    for k,v in fc.isort(code,true,true) do
+    for k,v in fc.isort(code,nil,true) do
         print(k,v)
     end
 
@@ -70,7 +75,7 @@ local function test()
     fc.gkv(fc.slice({1,2,3,'lua'},2,4,2))
     fc.gkv(fc.slice(target,2))
     fc.gkv(fc.slice(target,2,#target))
-    fc.gkv(fc.slice(target,4,fc.lent(target)))
+    fc.gkv(fc.slice(target,4,fc.len(target)))
 
     print('\nsep')
     fc.map(fc.gkv,fc.sep(target,2))
@@ -82,7 +87,7 @@ local function test()
     print('meta clone')
     local tab1 = {42,['code']={}}
     local meta1=setmetatable(tab1, {__index=tab1, __len = function (self)
-                                    return fc.lent(self) end})
+                                    return fc.len(self) end})
     local clone_meta=fc.clone(meta1)
     print('meta clone false',clone_meta==meta1)
     print('meta tables false', getmetatable(clone_meta)==getmetatable(meta1))
@@ -95,9 +100,9 @@ local function test()
 
     print('\niter')
     local itarget = fc.iter(tab1)
-    local rep = fc.repl(itarget, 2)
+    local rep = fc.rep(itarget, 2)
     print('first', itarget[1])
-    print('never use fc.lent() with iter')
+    print('never use fc.len() with iter')
     for i=1, #rep[1] do
         print(rep[1][i])
     end
@@ -122,12 +127,6 @@ local function test()
 
     local meta_join=fc.join(0, tab2)
     print(meta_join,'meta_join.code==tab2.code', meta_join.code==tab2.code)
-
-
-    print('\nvalval')
-    local mer_val_val = fc.valval({'lua','code'},fc.ztab(2))
-    fc.gkv(mer_val_val)
-
 
     print('\nmerge')
     fc.gkv(fc.merge(target,{0,1,42}))
@@ -198,10 +197,10 @@ local function test()
     local num_tab = {1, 0}
     fc.map(fc.gkv, fc.zip(key_tab, num_tab))
     print('zip like sep')
-    local sep_two = fc.zip(unpack(fc.repl(fc.iter(fc.range(6)),2)))
+    local sep_two = fc.zip(unpack(fc.rep(fc.iter(fc.range(6)),2)))
     fc.map(fc.gkv,sep_two)
     print('zip two iter')
-    local iter_zip = fc.zip(unpack(fc.repl(fc.iter(target),2)))
+    local iter_zip = fc.zip(unpack(fc.rep(fc.iter(target),2)))
     fc.map(fc.gkv,iter_zip)
 
     print('\npartial')
@@ -238,8 +237,6 @@ local function test()
     local mut=fc.permutation({'a','b','c'})
     fc.map(function(x) print(table.concat(x,' ')) end, mut)
 
-    print('\nrandtab')
-    fc.gkv(fc.randtab(8))
     print('\nrandkey', target[fc.randkey(target)])
     print('\nrandval', fc.randval(target))
     print('randval 100', fc.randval(fc.range(100)))
@@ -252,7 +249,7 @@ local function test()
     fc.gkv(shuffle_tar)
 
     print('\nshuffknuth')
-    fc.gkv(fc.shuffknuth(fc.range(10)),' ')
+    fc.gkv(fc.shuffknuth(fc.range(5)),' ')
 
     local shuffle_k = fc.shuffknuth(target)
     print('target')
@@ -263,7 +260,7 @@ local function test()
     print('shuffknuth perfomance')
     local tclk = os.clock()
     local str= 'Hello W'
-    local hell=fc.cut(str)
+    local hell=fc.split(str)
 
     for _=1, math.huge do
         hell=fc.shuffknuth(hell)

@@ -1,6 +1,6 @@
 # Fct-Lua
 
-Functional Library (39 functions)
+Functional Library (36 functions)
 
 Copy fct.lua to the project folder or in the directory in LUA_PATH.
 
@@ -16,7 +16,7 @@ Library has functions nofarg() and numfarg() for check errors in arguments.
 
 gkv - print key, values and type of the given table.
 
-lent - return number of all elements in the given table.
+len - return number of all elements in the given table.
 
 count - return count of how many times a given object occurs in given table.
 
@@ -24,13 +24,13 @@ keys, vals - return keys/vals of the given table.
 
 iskey, isval - return {k, v} if key/value in the given table if not return false.
 
-ztab - create zero table with positive or negative indexes.
+flip - reverse keys and values in given table.
 
 range - return table with numbers.
 
-repl - replicate item n-times and return table of items.
+rep - replicate item n-times and return table of items.
 
-cut - convert string or number to the table.
+split - convert string or number to the table.
 
 reverse - reverse table and put non number keys at the end.
 
@@ -47,8 +47,6 @@ iter - make iterable from the table and return values when call by index.
 equal - return true if all elements(key,value) in table1 equal for all elements in table2(key,value).
 
 join - return table that created from given two arguments.
-
-valval - return table that created with values from the first table and values from the second.
 
 merge - return table without duplicate values from the two tables.
 
@@ -75,8 +73,6 @@ reduce - call a function to each element in the table to reduce the table to a s
 compose - return function constructed from two functions provided in args.
 
 permutation - return table of tables with all permutation for a given table.
-
-randtab - return table with random values.
 
 randkey, randval - return random key/value from the given table.
 
