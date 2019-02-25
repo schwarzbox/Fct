@@ -47,8 +47,8 @@
 -- Error traceback
 -- nofarg, numfarg
 
-if arg[0] then print('3.5 FCT Functional Tools (lua)', arg[0]) end
-if arg[1] then print('3.5 FCT Functional Tools (lua)', arg[1]) end
+if arg[0] then io.write('4.0 FCT Functional Tools (lua)', arg[0],'\n') end
+if arg[1] then io.write('4.0 FCT Functional Tools (lua)', arg[1],'\n') end
 
 -- lua<5.3
 local unpack = table.unpack or unpack
@@ -68,7 +68,7 @@ local function nofarg(farg,name,expected)
         t1=string.format('%s: %s: bad argument #%d to', arg[-1], arg[0],num)
         t2=string.format('(expected %s, got %s)', expected, type(farg))
         fin=string.format('%s \'%s\' %s', t1, debug.getinfo(2)['name'], t2)
-        print(debug.traceback(fin,2))
+        io.write(debug.traceback(fin,2),'\n')
         os.exit(1)
     end
 end
@@ -76,7 +76,7 @@ end
 local FCT={}
 function FCT.gkv(item)
     nofarg(item,'item','table')
-    for k, v in pairs(item) do print(k, v, type(v)) end
+    for k, v in pairs(item) do io.write(k, v, type(v),'\n') end
 end
 
 function FCT.len(item)
