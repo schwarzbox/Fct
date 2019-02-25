@@ -3,9 +3,11 @@
 -- (c) Alexander Veledzimovich
 -- test FCT
 
-local fc=require('fct')
--- old lua version
+-- lua<5.3
+local utf8 = require('utf8')
 local unpack = table.unpack or unpack
+
+local fc=require('fct')
 
 local function test()
     local target = {0, 1,fc.gkv,'whoami',['lua'] = 'moon',['bit'] = {0, 1}}
@@ -44,7 +46,6 @@ local function test()
 
     print('\nrep')
     fc.gkv(fc.rep('lua',4))
-    fc.gkv(fc.rep(target,2))
     print('randtab')
     fc.gkv(fc.rep(math.random(),4))
     print('matrix')
@@ -80,29 +81,30 @@ local function test()
     print('\nsep')
     fc.map(fc.gkv,fc.sep(target,2))
 
-    local a = fc.clone(target)
-    local b = fc.clone(target)
-    print('\nclone',a ~= b)
-    print('deep clone', a['bit'] ~= b['bit'])
-    print('meta clone')
+    local a = fc.copy(target)
+    local b = fc.copy(target)
+    print('\ncopy',a ~= b)
+    print('deep copy', a['bit'] ~= b['bit'])
+    print('meta copy')
     local tab1 = {42,['code']={}}
     local meta1=setmetatable(tab1, {__index=tab1, __len = function (self)
                                     return fc.len(self) end})
-    local clone_meta=fc.clone(meta1)
-    print('meta clone false',clone_meta==meta1)
-    print('meta tables false', getmetatable(clone_meta)==getmetatable(meta1))
-    print('use meta method',#clone_meta,#meta1)
-    getmetatable(clone_meta).__len=nil
-    print('use meta method',#clone_meta,#meta1)
+    local copymeta=fc.copy(meta1)
+    print('meta copy false',copymeta==meta1)
+    print('meta tables false', getmetatable(copymeta)==getmetatable(meta1))
+    print('use meta method',#copymeta,#meta1)
+    getmetatable(copymeta).__len=nil
+    print('use meta method',#copymeta,#meta1)
     print('meta1 still have function', getmetatable(meta1).__len)
-    print('meta1[1] clone_meta[1]', meta1[1],clone_meta[1])
-    print('meta1[2]==clone_meta[2]', meta1['code']==clone_meta['code'])
+    print('meta1[1] copymeta[1]', meta1[1],copymeta[1])
+    print('meta1[2]==copymeta[2]', meta1['code']==copymeta['code'])
 
     print('\niter')
     local itarget = fc.iter(tab1)
     local rep = fc.rep(itarget, 2)
     print('first', itarget[1])
     print('never use fc.len() with iter')
+    print('iter.__index use together keys and index')
     for i=1, #rep[1] do
         print(rep[1][i])
     end
@@ -110,8 +112,8 @@ local function test()
 
     print('\nequal', fc.equal(a, b))
     print(fc.equal(target,target))
-    local complex_eq = fc.partial(fc.equal, {1,1})
-    fc.gkv(fc.map(complex_eq, {{1,0},{0,1},{0,0},{1,1}}))
+    local eqtab = fc.partial(fc.equal, {1,1})
+    fc.gkv(fc.map(eqtab, {{1,0},{0,1},{0,0},{1,1}}))
 
     print('\njoin')
     print('no fargs',fc.join())
@@ -125,8 +127,8 @@ local function test()
     setmetatable(tab2, {__index=tab2,__tostring=function(_)
                                             return 'meta2' end})
 
-    local meta_join=fc.join(0, tab2)
-    print(meta_join,'meta_join.code==tab2.code', meta_join.code==tab2.code)
+    local metajoin=fc.join(0, tab2)
+    print(metajoin,'metajoin.code==tab2.code', metajoin.code==tab2.code)
 
     print('\nmerge')
     fc.gkv(fc.merge(target,{0,1,42}))
@@ -154,7 +156,7 @@ local function test()
     print('print all items recursevly')
     fc.mapr(print, target)
     print('len all items recursevly')
-    local maprlen=fc.mapr(string.len,recursive)
+    local maprlen = fc.mapr(string.len,recursive)
     fc.gkv(fc.join(maprlen,maprlen['bit']))
     print('use mapr for varg with zip like in python map')
     fc.mapr(print,{unpack(fc.zip(target,{1,42,196}))})
@@ -167,9 +169,9 @@ local function test()
     print('string only')
     fc.gkv(fc.filter(function(x) return type(x) == 'string' end, mixarr))
     print('> 32')
-    fc.gkv(fc.filter(function (x) return x > 32 end, array))
+    fc.gkv(fc.filter(function (x) return x>32 end, array))
     print('len > 3')
-    fc.gkv(fc.filter(function(x) return tostring(x):len() > 3 end , mixarr))
+    fc.gkv(fc.filter(function(x) return tostring(x):len()>3 end , mixarr))
 
     print('\nany')
     print(fc.any(array))
@@ -187,75 +189,81 @@ local function test()
     print(fc.all({0,0,0}))
 
     print('\nzip')
-    local zipped = fc.zip(arr, mixarr)
+    local zipped = fc.zip(array, mixarr)
     fc.map(fc.gkv, zipped)
     print('unzip')
     local unzipped = fc.zip(unpack(zipped))
     fc.map(fc.gkv, unzipped)
     print('only for num keys')
-    local key_tab = {['key'] = 'key'}
-    local num_tab = {1, 0}
-    fc.map(fc.gkv, fc.zip(key_tab, num_tab))
+    local keytab = {['key'] = 'key'}
+    local numtab = {1, 0}
+    fc.map(fc.gkv, fc.zip(keytab, numtab))
     print('zip like sep')
-    local sep_two = fc.zip(unpack(fc.rep(fc.iter(fc.range(6)),2)))
-    fc.map(fc.gkv,sep_two)
+    local septwo = fc.zip(unpack(fc.rep(fc.iter(fc.range(6)),2)))
+    fc.map(fc.gkv,septwo)
     print('zip two iter')
-    local iter_zip = fc.zip(unpack(fc.rep(fc.iter(target),2)))
-    fc.map(fc.gkv,iter_zip)
+    local iterzip = fc.zip(unpack(fc.rep(fc.iter(target),2)))
+    fc.map(fc.gkv,iterzip)
 
     print('\npartial')
     print('make print # function')
-    local print_she = fc.partial(print, '#')
-    print_she('whoami','code')
+    local printshe = fc.partial(print, '#')
+    printshe('whoami','code')
     print('make map to string function')
     local mapstr = fc.partial(fc.map, tostring)
     fc.gkv(mapstr(array))
     print('make filter for numbers')
-    local filter_str = fc.partial(fc.filter,
-                               function(x) return type(x) == 'number' end)
-    fc.gkv(filter_str(mixarr))
+    local filstr = fc.partial(fc.filter,
+                               function(x) return type(x)=='number' end)
+    fc.gkv(filstr(mixarr))
 
     print('\nreduce')
     local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
-    print(fc.reduce(function(x, y) return  x + y end, {1,2,4,8,16,32,64,128}))
+    print(fc.reduce(function(x, y) return  x+y end, {1,2,4,8,16,32,64,128}))
     print('flat table')
     fc.gkv(fc.reduce(fc.join,nested))
 
     print('\ncompose')
     print('exclude gkv')
-    local no_gkv = fc.compose(fc.gkv, mapstr)
-    no_gkv(mixarr)
+    local nogkv = fc.compose(fc.gkv, mapstr)
+    nogkv(mixarr)
     print('make lent for all items')
     local maplent = fc.partial(fc.map, string.len)
     print('exclude lent')
-    local no_lent = fc.compose(maplent, fc.compose(mapstr, filter_str))
-    fc.gkv(no_lent(mixarr))
+    local nolent = fc.compose(maplent, fc.compose(mapstr, filstr))
+    fc.gkv(nolent(mixarr))
 
     print('\npermutation')
     local mut=fc.permutation(fc.range(3))
     fc.map(function(x) print(table.concat(x,' ')) end, mut)
-    local mut=fc.permutation({'a','b','c'})
+    mut=fc.permutation({'a','b','c'})
     fc.map(function(x) print(table.concat(x,' ')) end, mut)
+
+    print('\ncombinations')
+    local combi = fc.combination({0,1,2,3},2)
+    print('combinations', #combi)
+    fc.map(function(x) print (table.concat(x, ' ')) end, combi)
+
 
     print('\nrandkey', target[fc.randkey(target)])
     print('\nrandval', fc.randval(target))
     print('randval 100', fc.randval(fc.range(100)))
 
     print('\nshuff')
-    local shuffle_tar = fc.shuff(target)
+    local shuf = fc.shuff(target)
     print('target')
     fc.gkv(target)
-    print('shuffle_tar')
-    fc.gkv(shuffle_tar)
+    print('shuf')
+    fc.gkv(shuf)
 
     print('\nshuffknuth')
     fc.gkv(fc.shuffknuth(fc.range(5)),' ')
 
-    local shuffle_k = fc.shuffknuth(target)
+    local shufk = fc.shuffknuth(target)
     print('target')
     fc.gkv(target)
-    print('shuffle_k')
-    fc.gkv(shuffle_k)
+    print('shufk')
+    fc.gkv(shufk)
 
     print('shuffknuth perfomance')
     local tclk = os.clock()
@@ -266,7 +274,7 @@ local function test()
         hell=fc.shuffknuth(hell)
         if table.concat(hell)==str then break end
     end
-    print(os.clock() -  tclk)
+    print(os.clock()-tclk)
     print(table.concat(hell))
 
     print('\nuncomment to check error when pass wrong values to function')

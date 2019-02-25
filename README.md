@@ -40,7 +40,7 @@ slice - return slice of the given table.
 
 sep - return table separated on n-tables.
 
-clone - return recursive copy of the given table.
+copy - return recursive copy of the given table.
 
 iter - make iterable from the table and return values when call by index.
 
@@ -73,6 +73,8 @@ reduce - call a function to each element in the table to reduce the table to a s
 compose - return function constructed from two functions provided in args.
 
 permutation - return table of tables with all permutation for a given table.
+
+combination - return table of tables with combinations of elements taken k at a time without repetitions from given table.
 
 randkey, randval - return random key/value from the given table.
 
