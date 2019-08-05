@@ -48,11 +48,11 @@ equal - return true if all elements(key,value) in table1 equal for all elements 
 
 join - return table that created from given two arguments.
 
-merge - return table without duplicate values from the two tables.
+union - return table without duplicate values from the two tables.
 
 same - return table with same values from the two tables.
 
-uniq - return table with uniq values from the two tables.
+diff - return table with different values from the two tables.
 
 map - call a given function to each element in the given table.
 

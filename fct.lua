@@ -26,9 +26,7 @@
 -- DEALINGS IN THE SOFTWARE.
 
 -- 4.0
--- + improve rep
--- + improve permutations
--- + add combinations
+-- + rename merge - union uniq - diff
 
 -- 5.0
 -- separate combo/random library
@@ -37,12 +35,12 @@
 -- Tool Box
 -- gkv, len, count, keys, vals, iskey, isval, flip, range, rep,
 -- split, reverse, isort, slice, sep, copy, iter,
--- equal, join, merge, same, uniq,
+-- equal, join, unin, same, diff,
 -- map, mapr, filter, any, all, zip, partial, reduce, compose,
 -- permutation, combination, randkey, randval, shuff, shuffknuth
 
 -- No metatables when return arr
--- keys, vals, flip, range, repl, split, sep, iter, merge, same, uniq, map, filter, zip, permutation, combination, shuffknuth (faster)
+-- keys, vals, flip, range, repl, split, sep, iter, union, same, diff, map, filter, zip, permutation, combination, shuffknuth (faster)
 
 -- Error traceback
 -- nofarg, numfarg
@@ -53,6 +51,7 @@ if arg[1] then io.write('4.0 FCT Functional Tools (lua)', arg[1],'\n') end
 -- lua<5.3
 local unpack = table.unpack or unpack
 local utf8 = require('utf8')
+
 -- seed
 math.randomseed(os.time())
 -- errors
@@ -68,7 +67,7 @@ local function nofarg(farg,name,expected)
         t1=string.format('%s: %s: bad argument #%d to', arg[-1], arg[0],num)
         t2=string.format('(expected %s, got %s)', expected, type(farg))
         fin=string.format('%s \'%s\' %s', t1, debug.getinfo(2)['name'], t2)
-        io.write(debug.traceback(fin,2),'\n')
+        print(debug.traceback(fin,2))
         os.exit(1)
     end
 end
@@ -76,7 +75,7 @@ end
 local FCT={}
 function FCT.gkv(item)
     nofarg(item,'item','table')
-    for k, v in pairs(item) do io.write(k, v, type(v),'\n') end
+    for k, v in pairs(item) do print(k, v, type(v)) end
 end
 
 function FCT.len(item)
@@ -328,7 +327,7 @@ function FCT.join(item1,item2)
     return arr
 end
 
-function FCT.merge(item1,item2)
+function FCT.union(item1,item2)
     nofarg(item1,'item1','table')
     nofarg(item2,'item2','table')
     local arr = {}
@@ -362,7 +361,7 @@ function FCT.same(item1,item2)
     return arr
 end
 
-function FCT.uniq(item1,item2)
+function FCT.diff(item1,item2)
     nofarg(item1,'item1','table')
     nofarg(item2,'item2','table')
     local arr = {}
@@ -498,16 +497,16 @@ end
 -- p = n^n
 -- subset
 -- p = n!/(n-k)!
-function FCT.permutation(item,arr,num)
+function FCT.permutation(item,num,arr)
     nofarg(item,'item','table')
-    arr = arr or {}
     num = num or #item
+    arr = arr or {}
 
     if num <= 1 then arr[#arr+1] = {unpack(item)}
     else
         for i=1,num do
             item[num], item[i] = item[i], item[num]
-            FCT.permutation(item, arr, num-1)
+            FCT.permutation(item,num-1,arr)
             item[num], item[i] = item[i], item[num]
         end
     end

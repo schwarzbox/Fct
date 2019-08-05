@@ -130,14 +130,14 @@ local function test()
     local metajoin=fc.join(0, tab2)
     print(metajoin,'metajoin.code==tab2.code', metajoin.code==tab2.code)
 
-    print('\nmerge')
-    fc.gkv(fc.merge(target,{0,1,42}))
+    print('\nunion')
+    fc.gkv(fc.union(target,{0,1,42}))
 
     print('\nsame')
     fc.gkv(fc.same(target,{0,1,42}))
 
-    print('\nuniq')
-    fc.gkv(fc.uniq(target,{0,1,42}))
+    print('\ndiff')
+    fc.gkv(fc.diff(target,{0,1,42}))
 
 
     print('\nmap')
@@ -240,10 +240,12 @@ local function test()
     fc.map(function(x) print(table.concat(x,' ')) end, mut)
 
     print('\ncombinations')
-    local combi = fc.combination({0,1,2,3},2)
+    local combi = fc.combination({0,1,2,3},3)
     print('combinations', #combi)
     fc.map(function(x) print (table.concat(x, ' ')) end, combi)
 
+    local clr=fc.combination(fc.range(0,1,0.1),3)
+    fc.map(function(x) print(table.concat(x,' ')) end, clr)
 
     print('\nrandkey', target[fc.randkey(target)])
     print('\nrandval', fc.randval(target))
