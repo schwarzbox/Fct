@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 -- FCT
--- 4.0
+-- 4.5
 -- Functional Tools (lua)
 -- fct.lua
 
@@ -25,22 +25,19 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 
--- 4.0
--- + rename merge - union uniq - diff
-
 -- 5.0
 -- separate combo/random library
 -- clear tests
 
 -- Tool Box
--- gkv, len, count, keys, vals, iskey, isval, flip, range, rep,
+-- len, count, keys, vals, iskey, isval, flip, range, rep,
 -- split, reverse, isort, slice, sep, copy, iter,
 -- equal, join, unin, same, diff,
--- map, mapr, filter, any, all, zip, partial, reduce, compose,
--- permutation, combination, randkey, randval, shuff, shuffknuth
+-- map, mapr, filter, any, all, zip, reduce, partial, compose,
+-- accumulate permutation, combination, randkey, randval, shuff, shuffknuth
 
 -- No metatables when return arr
--- keys, vals, flip, range, repl, split, sep, iter, union, same, diff, map, filter, zip, permutation, combination, shuffknuth (faster)
+-- keys, vals, flip, range, repl, split, sep, iter, union, same, diff, map, filter, zip, accumulate, permutation, combination, shuffknuth (faster)
 
 -- Error traceback
 -- nofarg, numfarg
@@ -73,10 +70,6 @@ local function nofarg(farg,name,expected)
 end
 
 local FCT={}
-function FCT.gkv(item)
-    nofarg(item,'item','table')
-    for k, v in pairs(item) do print(k, v, type(v)) end
-end
 
 function FCT.len(item)
     nofarg(item,'item','table')
@@ -453,18 +446,6 @@ function FCT.zip(...)
     return arr
 end
 
-function FCT.partial(func,...)
-    nofarg(func,'func','function')
-    local vargs = {...}
-
-    local function inner(...)
-        local innervargs = {...}
-        local res = FCT.join(vargs, innervargs)
-        return func(unpack(res, 1, #res))
-    end
-    return inner
-end
-
 function FCT.reduce(func,item)
     nofarg(func,'func','function')
     nofarg(item,'item','table')
@@ -478,9 +459,21 @@ function FCT.reduce(func,item)
             first = res
         end
     else
-        res = func(first, nil)
+        res = first
     end
     return res
+end
+
+function FCT.partial(func,...)
+    nofarg(func,'func','function')
+    local vargs = {...}
+
+    local function inner(...)
+        local innervargs = {...}
+        local res = FCT.join(vargs, innervargs)
+        return func(unpack(res, 1, #res))
+    end
+    return inner
 end
 
 function FCT.compose(func,wrap)
@@ -534,6 +527,16 @@ function FCT.combination(item,num,arr)
 
     for _=1, #item do
         findcombo(item)
+    end
+    return arr
+end
+
+function FCT.accumulate(item,func)
+    nofarg(item,'item','table')
+    func = func or function(a,b) return a+b end
+    local arr = {item[1]}
+    for i=2,#item do
+        arr[#arr+1]=func(arr[#arr],item[i])
     end
     return arr
 end

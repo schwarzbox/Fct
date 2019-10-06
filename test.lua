@@ -9,61 +9,71 @@ local unpack = table.unpack or unpack
 
 local fc=require('fct')
 
+local function gkv(...)
+    for _,value in pairs(...) do
+        if type(value) == 'table' then
+            for k, v in pairs(value) do print(k, v, type(v)) end
+        else
+            print(value)
+        end
+    end
+end
+
 local function test()
-    local target = {0, 1,fc.gkv,'whoami',['lua'] = 'moon',['bit'] = {0, 1}}
+    local target = {0, 1,gkv,'whoami',['lua'] = 'moon',['bit'] = {0, 1}}
     print('gkv')
-    fc.gkv(target)
+    gkv(target)
 
     print('\nlent', fc.len(target), #target)
 
     print('\ncount', fc.count(0,target))
 
     print('\nkeys')
-    fc.gkv((fc.keys(target)))
+    gkv((fc.keys(target)))
 
     print('\nvals')
-    fc.gkv((fc.vals(target)))
+    gkv((fc.vals(target)))
 
     print('\niskey', fc.iskey('bit', target)~=nil)
     print('\nisval')
-    fc.gkv(fc.iskey('lua', target))
+    gkv(fc.iskey('lua', target))
 
     print('\nflip')
     local days = {'Sunday', 'Monday', 'Tuesday', 'Wednesday',
                       'Thursday', 'Friday', 'Saturday'}
     local revdays = fc.flip(days)
-    fc.gkv(revdays)
+    gkv(revdays)
     print(fc.isval('Sunday',days)[1])
 
     print('\nrange')
-    fc.gkv(fc.range())
+    gkv(fc.range())
 
-    fc.gkv(fc.range(1,5,2))
-    fc.gkv(fc.range(3,1,-1))
+    gkv(fc.range(1,5,2))
+    gkv(fc.range(3,1,-1))
     for i=1, #fc.range(3) do
         print('range',i)
     end
 
     print('\nrep')
-    fc.gkv(fc.rep('lua',4))
+    gkv(fc.rep('lua',4))
     print('randtab')
-    fc.gkv(fc.rep(math.random(),4))
+    gkv(fc.rep(math.random(),4))
     print('matrix')
     local matrix = {}
     for i=1,2 do matrix[i]=fc.rep(0,8) end
     print(table.concat(matrix[1],' '),table.concat(matrix[2],' '))
 
     print('\nsplit')
-    fc.gkv(fc.split('code'))
-    fc.gkv(fc.split('code lua 42 196', ' '))
-    fc.gkv(fc.split(196,''))
-    fc.gkv(fc.split('no sense','42'))
-    fc.gkv(fc.split('⌘ utf8 й', ' '))
-    fc.gkv(fc.split('⌘ utf8 й', ''))
-    fc.gkv(fc.split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
+    gkv(fc.split('code'))
+    gkv(fc.split('code lua 42 196', ' '))
+    gkv(fc.split(196,''))
+    gkv(fc.split('no sense','42'))
+    gkv(fc.split('⌘ utf8 й', ' '))
+    gkv(fc.split('⌘ utf8 й', ''))
+    gkv(fc.split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
 
     print('\nreverse')
-    fc.gkv(fc.reverse(target))
+    gkv(fc.reverse(target))
     print(fc.reverse(target)[2])
 
     print('\nisort')
@@ -73,13 +83,13 @@ local function test()
     end
 
     print('\nslice')
-    fc.gkv(fc.slice({1,2,3,'lua'},2,4,2))
-    fc.gkv(fc.slice(target,2))
-    fc.gkv(fc.slice(target,2,#target))
-    fc.gkv(fc.slice(target,4,fc.len(target)))
+    gkv(fc.slice({1,2,3,'lua'},2,4,2))
+    gkv(fc.slice(target,2))
+    gkv(fc.slice(target,2,#target))
+    gkv(fc.slice(target,4,fc.len(target)))
 
     print('\nsep')
-    fc.map(fc.gkv,fc.sep(target,2))
+    fc.map(gkv,fc.sep(target,2))
 
     local a = fc.copy(target)
     local b = fc.copy(target)
@@ -113,15 +123,15 @@ local function test()
     print('\nequal', fc.equal(a, b))
     print(fc.equal(target,target))
     local eqtab = fc.partial(fc.equal, {1,1})
-    fc.gkv(fc.map(eqtab, {{1,0},{0,1},{0,0},{1,1}}))
+    gkv(fc.map(eqtab, {{1,0},{0,1},{0,0},{1,1}}))
 
     print('\njoin')
     print('no fargs',fc.join())
-    fc.gkv(fc.join(target, {'join', zero = 0}))
+    gkv(fc.join(target, {'join', zero = 0}))
     print('join tables and values')
-    fc.gkv(fc.join({1,0}, 42))
+    gkv(fc.join({1,0}, 42))
     print('join fargs')
-    fc.gkv(fc.reduce(fc.join, {{1,0},42,{['lua']=1993},{196,['code']='lua'}}))
+    gkv(fc.reduce(fc.join, {{1,0},42,{['lua']=1993},{196,['code']='lua'}}))
     print('join with metatable')
     local tab2 = {42,['code']={'lua',1993}}
     setmetatable(tab2, {__index=tab2,__tostring=function(_)
@@ -131,33 +141,33 @@ local function test()
     print(metajoin,'metajoin.code==tab2.code', metajoin.code==tab2.code)
 
     print('\nunion')
-    fc.gkv(fc.union(target,{0,1,42}))
+    gkv(fc.union(target,{0,1,42}))
 
     print('\nsame')
-    fc.gkv(fc.same(target,{0,1,42}))
+    gkv(fc.same(target,{0,1,42}))
 
     print('\ndiff')
-    fc.gkv(fc.diff(target,{0,1,42}))
+    gkv(fc.diff(target,{0,1,42}))
 
 
     print('\nmap')
-    fc.gkv(fc.map(table.concat, {{'map'}, {0,1}}))
-    fc.gkv(fc.map(tostring, fc.range(1,3)))
+    gkv(fc.map(table.concat, {{'map'}, {0,1}}))
+    gkv(fc.map(tostring, fc.range(1,3)))
     print('len all items')
-    fc.gkv(fc.map(string.len, fc.map(tostring, target)))
+    gkv(fc.map(string.len, fc.map(tostring, target)))
     print('print values')
     fc.map(print, target)
 
     print('\nmapr')
     local recursive = fc.mapr(tostring, target)
-    fc.gkv(recursive)
+    gkv(recursive)
     print('string in table')
-    fc.gkv(recursive['bit'])
+    gkv(recursive['bit'])
     print('print all items recursevly')
     fc.mapr(print, target)
     print('len all items recursevly')
     local maprlen = fc.mapr(string.len,recursive)
-    fc.gkv(fc.join(maprlen,maprlen['bit']))
+    gkv(fc.join(maprlen,maprlen['bit']))
     print('use mapr for varg with zip like in python map')
     fc.mapr(print,{unpack(fc.zip(target,{1,42,196}))})
     print('use straight')
@@ -167,11 +177,11 @@ local function test()
     local mixarr = {'moon', 'lua', 'code',0, false, nil}
     print('\nfilter')
     print('string only')
-    fc.gkv(fc.filter(function(x) return type(x) == 'string' end, mixarr))
+    gkv(fc.filter(function(x) return type(x) == 'string' end, mixarr))
     print('> 32')
-    fc.gkv(fc.filter(function (x) return x>32 end, array))
+    gkv(fc.filter(function (x) return x>32 end, array))
     print('len > 3')
-    fc.gkv(fc.filter(function(x) return tostring(x):len()>3 end , mixarr))
+    gkv(fc.filter(function(x) return tostring(x):len()>3 end , mixarr))
 
     print('\nany')
     print(fc.any(array))
@@ -190,20 +200,27 @@ local function test()
 
     print('\nzip')
     local zipped = fc.zip(array, mixarr)
-    fc.map(fc.gkv, zipped)
+    fc.map(gkv, zipped)
     print('unzip')
     local unzipped = fc.zip(unpack(zipped))
-    fc.map(fc.gkv, unzipped)
+    fc.map(gkv, unzipped)
     print('only for num keys')
     local keytab = {['key'] = 'key'}
     local numtab = {1, 0}
-    fc.map(fc.gkv, fc.zip(keytab, numtab))
+    fc.map(gkv, fc.zip(keytab, numtab))
     print('zip like sep')
     local septwo = fc.zip(unpack(fc.rep(fc.iter(fc.range(6)),2)))
-    fc.map(fc.gkv,septwo)
+    fc.map(gkv,septwo)
     print('zip two iter')
     local iterzip = fc.zip(unpack(fc.rep(fc.iter(target),2)))
-    fc.map(fc.gkv,iterzip)
+    fc.map(gkv,iterzip)
+
+    print('\nreduce')
+    print(fc.reduce(function(x,y) return x*y end, {1}))
+    local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
+    print(fc.reduce(function(x, y) return  x+y end, {1,2,4,8,16,32,64,128}))
+    print('flat table')
+    gkv(fc.reduce(fc.join,nested))
 
     print('\npartial')
     print('make print # function')
@@ -211,27 +228,26 @@ local function test()
     printshe('whoami','code')
     print('make map to string function')
     local mapstr = fc.partial(fc.map, tostring)
-    fc.gkv(mapstr(array))
+    gkv(mapstr(array))
     print('make filter for numbers')
     local filstr = fc.partial(fc.filter,
                                function(x) return type(x)=='number' end)
-    fc.gkv(filstr(mixarr))
-
-    print('\nreduce')
-    local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
-    print(fc.reduce(function(x, y) return  x+y end, {1,2,4,8,16,32,64,128}))
-    print('flat table')
-    fc.gkv(fc.reduce(fc.join,nested))
+    gkv(filstr(mixarr))
 
     print('\ncompose')
     print('exclude gkv')
-    local nogkv = fc.compose(fc.gkv, mapstr)
+    local nogkv = fc.compose(gkv, mapstr)
     nogkv(mixarr)
     print('make lent for all items')
     local maplent = fc.partial(fc.map, string.len)
     print('exclude lent')
     local nolent = fc.compose(maplent, fc.compose(mapstr, filstr))
-    fc.gkv(nolent(mixarr))
+    gkv(nolent(mixarr))
+
+    print('\naccumulate')
+    print(unpack(fc.accumulate(fc.range(5))))
+    print(unpack(fc.accumulate(fc.range(5),function(aa,bb) return aa*bb end)))
+
 
     print('\npermutation')
     local mut=fc.permutation(fc.range(3))
@@ -254,18 +270,18 @@ local function test()
     print('\nshuff')
     local shuf = fc.shuff(target)
     print('target')
-    fc.gkv(target)
+    gkv(target)
     print('shuf')
-    fc.gkv(shuf)
+    gkv(shuf)
 
     print('\nshuffknuth')
-    fc.gkv(fc.shuffknuth(fc.range(5)),' ')
+    gkv(fc.shuffknuth(fc.range(5)),' ')
 
     local shufk = fc.shuffknuth(target)
     print('target')
-    fc.gkv(target)
+    gkv(target)
     print('shufk')
-    fc.gkv(shufk)
+    gkv(shufk)
 
     print('shuffknuth perfomance')
     local tclk = os.clock()
@@ -278,9 +294,6 @@ local function test()
     end
     print(os.clock()-tclk)
     print(table.concat(hell))
-
-    print('\nuncomment to check error when pass wrong values to function')
-    -- fc.gkv('lua')
 end
 
 test()

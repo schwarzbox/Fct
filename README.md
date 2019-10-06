@@ -1,6 +1,6 @@
 # Fct-Lua
 
-Functional Library (36 functions)
+Functional Library (37 functions)
 
 Copy fct.lua to the project folder or in the directory in LUA_PATH.
 
@@ -13,8 +13,6 @@ Look at examples in test.lua.
 Library has functions nofarg() and numfarg() for check errors in arguments.
 
 # Tool Box
-
-gkv - print key, values and type of the given table.
 
 len - return number of all elements in the given table.
 
@@ -66,11 +64,13 @@ all - return true if all item in table not nil or false.
 
 zip -  iterates through multiple tables, and aggregates them.
 
-partial - return function with fixed first argument.
-
 reduce - call a function to each element in the table to reduce the table to a single value.
 
+partial - return function with fixed first argument.
+
 compose - return function constructed from two functions provided in args.
+
+accumulate - return table with accumulated sums. If no function is passed, addition takes place by default.
 
 permutation - return table of tables with all permutation for a given table.
 
