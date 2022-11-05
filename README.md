@@ -1,24 +1,25 @@
-# Fct-Lua
+# Fct
 
-Functional Library (37 functions)
+v4.6
 
-Copy fct.lua to the project folder or in the directory in LUA_PATH.
+Functional Library (42 functions)
 
-Import module.
+Copy fct.lua to the project folder or in the dir in the LUA_PATH.
+
 ``` lua
 local fc = require('fct')
 ```
-Look at examples in test.lua.
+Look at examples in the file test.lua
 
-Library has functions nofarg() and numfarg() for check errors in arguments.
-
-# Tool Box
+## Tool Box
 
 len - return number of all elements in the given table.
 
 count - return count of how many times a given object occurs in given table.
 
 keys, vals - return keys/vals of the given table.
+
+items - return new table which consist from {value: value} of given table
 
 iskey, isval - return {k, v} if key/value in the given table if not return false.
 
@@ -30,7 +31,7 @@ rep - replicate item n-times and return table of items.
 
 split - convert string or number to the table.
 
-reverse - reverse table and put non number keys at the end.
+invert- reverse table and put non number keys at the end.
 
 isort - return iterator which allow to sort and reverse table keys/values.
 
@@ -52,11 +53,13 @@ same - return table with same values from the two tables.
 
 diff - return table with different values from the two tables.
 
-map - call a given function to each element in the given table.
+each - call a given function\method to each element in the given table
 
-mapr - call a given function to each element in the given table recursevly.
+map - call a given function to each element in the given table and return new table.
 
-filter - filter table by given function.
+mapr - call a given function to each element in the given table recursevly and return new table.
+
+filter - filter table by given function and return new filteredtable.
 
 any - return true if any item in table not nil or false.
 
@@ -70,6 +73,10 @@ partial - return function with fixed first argument.
 
 compose - return function constructed from two functions provided in args.
 
+chain - combine together some functions.
+
+cache - cache function.
+
 accumulate - return table with accumulated sums. If no function is passed, addition takes place by default.
 
 permutation - return table of tables with all permutation for a given table.
@@ -81,3 +88,9 @@ randkey, randval - return random key/value from the given table.
 shuff - return the mixed version of the given table.
 
 shuffknuth - return mixed version of the given table (faster then shuff but only for number keys).
+
+weighted - select keys by their weights.
+
+## Support
+
+gkv - get print key value of given table

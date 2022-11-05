@@ -10,21 +10,21 @@ local unpack = table.unpack or unpack
 local fc=require('fct')
 
 local function gkv(...)
-    for _,value in pairs(...) do
+    for key, value in pairs(...) do
         if type(value) == 'table' then
             for k, v in pairs(value) do print(k, v, type(v)) end
         else
-            print(value)
+            print(key, value)
         end
     end
 end
 
 local function test()
     local target = {0, 1,gkv,'whoami',['lua'] = 'moon',['bit'] = {0, 1}}
-    print('gkv')
+
     gkv(target)
 
-    print('\nlent', fc.len(target), #target)
+    print('\nlen', fc.len(target), #target)
 
     print('\ncount', fc.count(0,target))
 
@@ -33,6 +33,9 @@ local function test()
 
     print('\nvals')
     gkv((fc.vals(target)))
+
+    print('\nitems')
+    gkv(fc.items(target))
 
     print('\niskey', fc.iskey('bit', target)~=nil)
     print('\nisval')
@@ -72,9 +75,9 @@ local function test()
     gkv(fc.split('⌘ utf8 й', ''))
     gkv(fc.split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
 
-    print('\nreverse')
-    gkv(fc.reverse(target))
-    print(fc.reverse(target)[2])
+    print('\ninvert')
+    gkv(fc.invert(target))
+    print(fc.invert(target)[2])
 
     print('\nisort')
     local code={['lua']=1993,['c']=1970,['swift']=2013}
@@ -149,6 +152,10 @@ local function test()
     print('\ndiff')
     gkv(fc.diff(target,{0,1,42}))
 
+    print('\neach')
+    local obj = {{say=function(m) print(m) end},{say=function(m) print(m) end}}
+    fc.each('say', obj)
+    fc.each(print, obj)
 
     print('\nmap')
     gkv(fc.map(table.concat, {{'map'}, {0,1}}))
@@ -244,6 +251,18 @@ local function test()
     local nolent = fc.compose(maplent, fc.compose(mapstr, filstr))
     gkv(nolent(mixarr))
 
+    print('\nchain')
+    local objects = {{hp=10, wound=false},{hp=5, wound=true}}
+    local combo = fc.chain(function(o) o.hp=o.hp-1 end,
+                            function(o) o.wound=true end)
+    combo(objects[1])
+    gkv(objects[1])
+
+    print('\ncache')
+    local ccos=fc.cache(math.cos)
+    print(ccos(1))
+    print(ccos(1))
+
     print('\naccumulate')
     print(unpack(fc.accumulate(fc.range(5))))
     print(unpack(fc.accumulate(fc.range(5),function(aa,bb) return aa*bb end)))
@@ -294,6 +313,12 @@ local function test()
     end
     print(os.clock()-tclk)
     print(table.concat(hell))
+
+    print('\nweighted')
+    local weigth = {['a']=0,['b']=5,['c']=10}
+    for _=1,10 do
+        print(fc.weighted(weigth))
+    end
 end
 
 test()
