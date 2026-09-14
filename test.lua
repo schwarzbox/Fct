@@ -1,324 +1,789 @@
 #!/usr/bin/env lua
--- Mon Jun  4 17:45:53 2018
--- (c) Alexander Veledzimovich
--- test FCT
+-- FCT
+-- test.lua
+
+-- Copyright (c) 2018 Aliaksandr Veledzimovich [[veledz@gmail.com]]
+-- SPDX-License-Identifier: MIT
 
 -- lua<5.3
 local utf8 = require('utf8')
 local unpack = table.unpack or unpack
 
-local fc=require('fct')
+local fct = require('fct')
 
 local function gkv(...)
     for key, value in pairs(...) do
         if type(value) == 'table' then
-            for k, v in pairs(value) do print(k, v, type(v)) end
+            for nested_key, nested_value in pairs(value) do
+                print(nested_key, nested_value, type(nested_value))
+            end
         else
             print(key, value)
         end
     end
 end
 
-local function test()
-    local target = {0, 1,gkv,'whoami',['lua'] = 'moon',['bit'] = {0, 1}}
+local function tables()
+    local target = {
+        0,
+        1,
+        gkv,
+        ['lua'] = 'moon',
+        ['bit'] = {0, 1}
+    }
 
-    gkv(target)
+    print('\ngkv')
+    fct.gkv(target)
 
-    print('\nlen', fc.len(target), #target)
 
-    print('\ncount', fc.count(0,target))
+    print('\nlen', fct.len(target), #target)
+    assert(fct.len(target) == 5)
+
+
+    print('\ncount', fct.count(0, target))
+    assert(fct.count(0, target) == 1)
+
 
     print('\nkeys')
-    gkv((fc.keys(target)))
+    gkv(fct.keys(target))
+
 
     print('\nvals')
-    gkv((fc.vals(target)))
+    gkv(fct.vals(target))
+
 
     print('\nitems')
-    gkv(fc.items(target))
+    local items = fct.items(target)
+    gkv(items)
 
-    print('\niskey', fc.iskey('bit', target)~=nil)
+    local found = false
+    for _, item in pairs(items) do
+        if item[1] == 'lua' and item[2] == 'moon' then
+            found = true
+            break
+        end
+    end
+
+    assert(found)
+
+
+    print('\niskey', fct.iskey('bit', target) ~= nil)
+    assert(fct.iskey('bit', target) ~= false)
+
+
     print('\nisval')
-    gkv(fc.iskey('lua', target))
+    assert(fct.isval('moon', target) ~= false)
+
+
+    print('\nindex')
+    assert(fct.index(0, target) == 1)
+    assert(fct.index('moon', target) == 'lua')
+
 
     print('\nflip')
-    local days = {'Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                      'Thursday', 'Friday', 'Saturday'}
-    local revdays = fc.flip(days)
-    gkv(revdays)
-    print(fc.isval('Sunday',days)[1])
+    local days = {
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday'
+    }
+    local reversed_days = fct.flip(days)
+    gkv(reversed_days)
+    print(fct.isval('Sunday', days))
+
+    assert(reversed_days.Sunday == 1)
+
 
     print('\nrange')
-    gkv(fc.range())
+    gkv(fct.range())
 
-    gkv(fc.range(1,5,2))
-    gkv(fc.range(3,1,-1))
-    for i=1, #fc.range(3) do
-        print('range',i)
+    local range = fct.range(1, 5, 2)
+    gkv(range)
+    gkv(fct.range(3, 1, -1))
+
+    for index = 1, #fct.range(3) do
+        print('range', index)
     end
+    assert(range[1] == 1 and range[2] == 3 and range[3] == 5)
+
 
     print('\nrep')
-    gkv(fc.rep('lua',4))
+    local repeated_values = fct.rep('lua', 4)
+    gkv(repeated_values)
+
     print('randtab')
-    gkv(fc.rep(math.random(),4))
+    gkv(fct.rep(math.random(), 4))
+
     print('matrix')
     local matrix = {}
-    for i=1,2 do matrix[i]=fc.rep(0,8) end
-    print(table.concat(matrix[1],' '),table.concat(matrix[2],' '))
+    for row = 1, 2 do
+        matrix[row] = fct.rep(0, 8)
+    end
+    print(
+        table.concat(matrix[1], ' '),
+        table.concat(matrix[2], ' ')
+    )
+
+    assert(#repeated_values == 4)
+
 
     print('\nsplit')
-    gkv(fc.split('code'))
-    gkv(fc.split('code lua 42 196', ' '))
-    gkv(fc.split(196,''))
-    gkv(fc.split('no sense','42'))
-    gkv(fc.split('⌘ utf8 й', ' '))
-    gkv(fc.split('⌘ utf8 й', ''))
-    gkv(fc.split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
+    gkv(fct.split('code'))
+    gkv(fct.split('code lua 42 196', ' '))
+    gkv(fct.split(196, ''))
+    gkv(fct.split('no sense', '42'))
+    gkv(fct.split('⌘ utf8 й', ' '))
+    gkv(fct.split('⌘ utf8 й', ''))
+    gkv(fct.split('⌘utf8⌘utf8⌘utf8⌘', '⌘'))
+
+    assert(#fct.split('code') == 4)
+
 
     print('\ninvert')
-    gkv(fc.invert(target))
-    print(fc.invert(target)[2])
+    local inverted_target = fct.invert(target)
+    gkv(inverted_target)
+    print(inverted_target[2])
 
-    print('\nisort')
-    local code={['lua']=1993,['c']=1970,['swift']=2013}
-    for k,v in fc.isort(code,nil,true) do
-        print(k,v)
-    end
+    assert(
+        fct.equal(inverted_target, {
+            gkv,
+            1,
+            0,
+            lua = 'moon',
+            bit = {0, 1}
+        })
+    )
+
 
     print('\nslice')
-    gkv(fc.slice({1,2,3,'lua'},2,4,2))
-    gkv(fc.slice(target,2))
-    gkv(fc.slice(target,2,#target))
-    gkv(fc.slice(target,4,fc.len(target)))
+    gkv(fct.slice({1, 2, 3, 'lua'}, 2, 4, 2))
+    gkv(fct.slice(target, 2))
+    gkv(fct.slice(target, 2, #target))
+    gkv(fct.slice(target, 4, fct.len(target)))
+    local sliced = fct.slice({1, 2, 3, 'lua'}, 2, 4, 2)
+    assert(sliced[1] == 2 and sliced[2] == 'lua')
+
 
     print('\nsep')
-    fc.map(gkv,fc.sep(target,2))
+    fct.map(gkv, fct.sep(target, 2))
 
-    local a = fc.copy(target)
-    local b = fc.copy(target)
-    print('\ncopy',a ~= b)
-    print('deep copy', a['bit'] ~= b['bit'])
+    local separated = fct.sep(target, 2)
+    assert(#separated == 2)
+
+
+    print('\ncopy')
+    local copied_target = fct.copy(target)
+    local second_copied_target = fct.copy(target)
+    print('copy', copied_target ~= second_copied_target)
+
+    print(
+        'deep copy',
+        copied_target['bit'] ~= second_copied_target['bit']
+    )
+
     print('meta copy')
-    local tab1 = {42,['code']={}}
-    local meta1=setmetatable(tab1, {__index=tab1, __len = function (self)
-                                    return fc.len(self) end})
-    local copymeta=fc.copy(meta1)
-    print('meta copy false',copymeta==meta1)
-    print('meta tables false', getmetatable(copymeta)==getmetatable(meta1))
-    print('use meta method',#copymeta,#meta1)
-    getmetatable(copymeta).__len=nil
-    print('use meta method',#copymeta,#meta1)
-    print('meta1 still have function', getmetatable(meta1).__len)
-    print('meta1[1] copymeta[1]', meta1[1],copymeta[1])
-    print('meta1[2]==copymeta[2]', meta1['code']==copymeta['code'])
+    local iterator_source = {
+        0,
+        42,
+        ['code'] = {}
+    }
+    local source_metatable = setmetatable(iterator_source, {
+        __index = iterator_source,
+        __len = function(self)
+            return fct.len(self)
+        end
+    })
+    local copied_metatable_table = fct.copy(source_metatable)
+    print(
+        'meta copy false',
+        copied_metatable_table == source_metatable
+    )
+    print(
+        'meta tables false',
+        getmetatable(copied_metatable_table)
+            == getmetatable(source_metatable)
+    )
+    print(
+        'use meta method',
+        #copied_metatable_table,
+        #source_metatable
+    )
+    getmetatable(copied_metatable_table).__len = nil
+    print(
+        'use meta method',
+        #copied_metatable_table,
+        #source_metatable
+    )
+    print(
+        'source_metatable still have function',
+        getmetatable(source_metatable).__len
+    )
+    print(
+        'source_metatable[1] copied_metatable_table[1]',
+        source_metatable[1],
+        copied_metatable_table[1]
+    )
+    print(
+        'source_metatable[2] == copied_metatable_table[2]',
+        source_metatable['code'] == copied_metatable_table['code']
+    )
+
+    assert(
+        copied_target ~= second_copied_target
+        and copied_target['bit'] ~= second_copied_target['bit']
+    )
+
 
     print('\niter')
-    local itarget = fc.iter(tab1)
-    local rep = fc.rep(itarget, 2)
-    print('first', itarget[1])
-    print('never use fc.len() with iter')
-    print('iter.__index use together keys and index')
-    for i=1, #rep[1] do
-        print(rep[1][i])
-    end
-    print('first from rep1',rep[1][1], 'first from rep2',rep[2][1])
+    local iterator_target = fct.iter(iterator_source)
+    local iterator_replicates = fct.rep(iterator_target, 2)
+    print('first', iterator_target[1])
+    print('never use fct.len() with iter')
 
-    print('\nequal', fc.equal(a, b))
-    print(fc.equal(target,target))
-    local eqtab = fc.partial(fc.equal, {1,1})
-    gkv(fc.map(eqtab, {{1,0},{0,1},{0,0},{1,1}}))
+    print('iter.__index use together keys and index')
+    for index = 1, #iterator_replicates[1] do
+        print(iterator_replicates[1][index])
+    end
+    print(
+        'first from rep1',
+        iterator_replicates[1][1],
+        'first from rep2',
+        iterator_replicates[2][1]
+    )
+
+    assert(iterator_target[2] ~= iterator_source[2])
+
+
+    print('\nequal', fct.equal(copied_target, second_copied_target))
+    print(fct.equal(target, target))
+
+    local equal_target = fct.partial(fct.equal, {1, 1})
+    local equality_results = fct.map(equal_target, {
+        {1, 0},
+        {0, 1},
+        {0, 0},
+        {1, 1}
+    })
+    gkv(equality_results)
+
+    print(fct.equal(
+        {1, 2, lua = 'moon'},
+        {1, 2, code = 'lua'}
+    ))
+
+    assert(fct.equal(copied_target, second_copied_target))
+
+    assert(not fct.equal(
+        {1, 2, lua = 'moon'},
+        {1, 2, code = 'lua'}
+    ))
+
+    assert(fct.equal(
+        {1, 2, {3, 4}},
+        {1, 2, {3, 4}}
+    ))
+
+    assert(not fct.equal(
+        {1, 2, {3, 4}},
+        {1, 2, {3, 5}}
+    ))
+
 
     print('\njoin')
-    print('no fargs',fc.join())
-    gkv(fc.join(target, {'join', zero = 0}))
-    print('join tables and values')
-    gkv(fc.join({1,0}, 42))
-    print('join fargs')
-    gkv(fc.reduce(fc.join, {{1,0},42,{['lua']=1993},{196,['code']='lua'}}))
-    print('join with metatable')
-    local tab2 = {42,['code']={'lua',1993}}
-    setmetatable(tab2, {__index=tab2,__tostring=function(_)
-                                            return 'meta2' end})
+    print('no fargs', fct.join())
 
-    local metajoin=fc.join(0, tab2)
-    print(metajoin,'metajoin.code==tab2.code', metajoin.code==tab2.code)
+    gkv(fct.join(target, {'join', zero = 0}))
+
+    print('join tables and values')
+    gkv(fct.join({1, 0}, 42))
+
+    print('join fargs')
+    gkv(fct.reduce(fct.join, {
+        {1, 0},
+        42,
+        {['lua'] = 1993},
+        {196, ['code'] = 'lua'}
+    }))
+
+    print('join with metatable')
+    local metatable_source = {
+        42,
+        ['code'] = {'lua', 1993}
+    }
+    setmetatable(metatable_source, {
+        __index = metatable_source,
+        __tostring = function(_)
+            return 'meta2'
+        end
+    })
+    local joined_metatable_table = fct.join(0, metatable_source)
+    print(
+        joined_metatable_table,
+        'joined_metatable_table.code == metatable_source.code',
+        joined_metatable_table.code == metatable_source.code
+    )
+
+    assert(joined_metatable_table.code ~= metatable_source.code)
+
+    assert(fct.equal(
+        joined_metatable_table.code,
+        metatable_source.code
+    ))
+
+
+    print('\nset')
+    local set = fct.set(target)
+    gkv(set)
+    assert(set.moon == 'moon')
+
 
     print('\nunion')
-    gkv(fc.union(target,{0,1,42}))
+    local union = fct.union(target, {0, 1, 42})
+    gkv(union)
+    assert(fct.isval(42, union) ~= false)
 
     print('\nsame')
-    gkv(fc.same(target,{0,1,42}))
+    local same = fct.same(target, {0, 1, 42})
+    gkv(same)
+    assert(fct.isval(0, same) ~= false)
 
     print('\ndiff')
-    gkv(fc.diff(target,{0,1,42}))
+    local diff = fct.diff(target, {0, 1, 42})
+    gkv(diff)
+    assert(fct.isval(42, diff) ~= false)
+end
 
-    print('\neach')
-    local obj = {{say=function(m) print(m) end},{say=function(m) print(m) end}}
-    fc.each('say', obj)
-    fc.each(print, obj)
+local function sorting()
+    print('\nisort')
+    local code = {
+        ['lua'] = 1993,
+        ['c'] = 1970,
+        ['swift'] = 2013
+    }
+    for key, value in fct.isort(code, nil, true) do
+        print(key, value)
+    end
+end
 
-    print('\nmap')
-    gkv(fc.map(table.concat, {{'map'}, {0,1}}))
-    gkv(fc.map(tostring, fc.range(1,3)))
-    print('len all items')
-    gkv(fc.map(string.len, fc.map(tostring, target)))
-    print('print values')
-    fc.map(print, target)
-
-    print('\nmapr')
-    local recursive = fc.mapr(tostring, target)
-    gkv(recursive)
-    print('string in table')
-    gkv(recursive['bit'])
-    print('print all items recursevly')
-    fc.mapr(print, target)
-    print('len all items recursevly')
-    local maprlen = fc.mapr(string.len,recursive)
-    gkv(fc.join(maprlen,maprlen['bit']))
-    print('use mapr for varg with zip like in python map')
-    fc.mapr(print,{unpack(fc.zip(target,{1,42,196}))})
-    print('use straight')
-    fc.mapr(print,{target,{0,1},'whoami',{code='lua'}})
+local function functional()
+    local target = {
+        0,
+        1,
+        gkv,
+        ['lua'] = 'moon',
+        ['bit'] = {0, 1}
+    }
 
     local array = {16, 32, 64, 128}
-    local mixarr = {'moon', 'lua', 'code',0, false, nil}
+    local mixed_values = {'moon', 'lua', 'code', 0, false, nil}
+
+
+    print('\neach')
+    local objects = {
+        {say = function(message) print(message) end},
+        {say = function(message) print(message) end}
+    }
+    fct.each('say', objects)
+    fct.each(print, objects)
+
+
+    print('\nmap')
+    gkv(fct.map(table.concat, {{'map'}, {0, 1}}))
+    gkv(fct.map(tostring, fct.range(1, 3)))
+
+    print('len all items')
+    gkv(fct.map(string.len, fct.map(tostring, target)))
+
+    print('print values')
+    fct.map(print, target)
+
+    assert(fct.map(tostring, fct.range(1, 3))[1] == '1')
+
+
+    print('\nmapr')
+    local recursive_result = fct.mapr(tostring, target)
+    gkv(recursive_result)
+
+    print('string in table')
+    gkv(recursive_result['bit'])
+
+    print('print all items recursively')
+    fct.mapr(print, target)
+
+    print('len all items recursively')
+    local recursive_lengths = fct.mapr(string.len, recursive_result)
+    gkv(fct.join(
+        recursive_lengths,
+        recursive_lengths['bit']
+    ))
+
+    print('use mapr for varg with zip like in python map')
+    fct.mapr(print, {
+        unpack(fct.zip(target, {1, 42, 196}))
+    })
+
+    print('use straight')
+    fct.mapr(print, {
+        target,
+        {0, 1},
+        'whoami',
+        {code = 'lua'}
+    })
+
+    assert(type(recursive_result['bit']) == 'table')
+
+
     print('\nfilter')
     print('string only')
-    gkv(fc.filter(function(x) return type(x) == 'string' end, mixarr))
+    gkv(fct.filter(
+        function(value)
+            return type(value) == 'string'
+        end,
+        mixed_values
+    ))
+
     print('> 32')
-    gkv(fc.filter(function (x) return x>32 end, array))
+    gkv(fct.filter(
+        function(value)
+            return value > 32
+        end,
+        array
+    ))
+
     print('len > 3')
-    gkv(fc.filter(function(x) return tostring(x):len()>3 end , mixarr))
+    gkv(fct.filter(
+        function(value)
+            return tostring(value):len() > 3
+        end,
+        mixed_values
+    ))
+
+    local strings = fct.filter(
+        function(value)
+            return type(value) == 'string'
+        end,
+        mixed_values
+    )
+
+    assert(#strings == 3)
+
 
     print('\nany')
-    print(fc.any(array))
-    print(fc.any(mixarr))
-    print(not fc.any(fc.map(function(x)
-                            return type(x)=='string' end, mixarr)))
-    print(fc.any({false,nil}))
-    print(fc.any({0,0,0}))
+    print(fct.any(array))
+    print(fct.any(mixed_values))
+
+    print(not fct.any(fct.map(
+        function(value)
+            return type(value) == 'string'
+        end,
+        mixed_values
+    )))
+
+    print(fct.any({false, nil}))
+    print(fct.any({0, 0, 0}))
+
+    assert(fct.any({0, 0, 0}) == true)
+
 
     print('\nall')
-    print(fc.all(array))
-    print(fc.all(mixarr))
-    print(fc.all(fc.map(function(x) return type(x)=='string' end, mixarr)))
-    print(fc.all({false,nil}))
-    print(fc.all({0,0,0}))
+    print(fct.all(array))
+    print(fct.all(mixed_values))
+
+    print(fct.all(fct.map(
+        function(value)
+            return type(value) == 'string'
+        end,
+        mixed_values
+    )))
+
+    print(fct.all({false, nil}))
+    print(fct.all({0, 0, 0}))
+
+    assert(fct.all({0, 0, 0}) == true)
+
 
     print('\nzip')
-    local zipped = fc.zip(array, mixarr)
-    fc.map(gkv, zipped)
+    local zipped = fct.zip(array, mixed_values)
+    fct.map(gkv, zipped)
+
     print('unzip')
-    local unzipped = fc.zip(unpack(zipped))
-    fc.map(gkv, unzipped)
+    local unzipped = fct.zip(unpack(zipped))
+
+    fct.map(gkv, unzipped)
+
     print('only for num keys')
-    local keytab = {['key'] = 'key'}
-    local numtab = {1, 0}
-    fc.map(gkv, fc.zip(keytab, numtab))
+    local key_table = {['key'] = 'key'}
+    local numeric_table = {1, 0}
+    fct.map(gkv, fct.zip(key_table, numeric_table))
+
     print('zip like sep')
-    local septwo = fc.zip(unpack(fc.rep(fc.iter(fc.range(6)),2)))
-    fc.map(gkv,septwo)
+    local repeated_iterators = fct.rep(
+        fct.iter(fct.range(6)),
+        2
+    )
+
+    local zipped_iterators = fct.zip(
+        unpack(repeated_iterators)
+    )
+    fct.map(gkv, zipped_iterators)
+
     print('zip two iter')
-    local iterzip = fc.zip(unpack(fc.rep(fc.iter(target),2)))
-    fc.map(gkv,iterzip)
+    local repeated_target_iterators = fct.rep(
+        fct.iter(target),
+        2
+    )
+
+    local zipped_target_iterators = fct.zip(
+        unpack(repeated_target_iterators)
+    )
+    fct.map(gkv, zipped_target_iterators)
+
+    assert(type(zipped) == 'table')
+
 
     print('\nreduce')
-    print(fc.reduce(function(x,y) return x*y end, {1}))
-    local nested = {{1,0},{0,1},{0,0},1,1,{42,42}}
-    print(fc.reduce(function(x, y) return  x+y end, {1,2,4,8,16,32,64,128}))
+    print(fct.reduce(
+        function(first_value, second_value)
+            return first_value * second_value
+        end,
+        {1}
+    ))
+    local sum = fct.reduce(
+        function(first_value, second_value)
+            return first_value + second_value
+        end,
+        {1, 2, 4, 8, 16, 32, 64, 128}
+    )
+    print(sum)
+
     print('flat table')
-    gkv(fc.reduce(fc.join,nested))
+    local nested = {
+        {1, 0},
+        {0, 1},
+        {0, 0},
+        1,
+        1,
+        {42, 42}
+    }
+    gkv(fct.reduce(fct.join, nested))
+
+    assert(sum == 255)
+
 
     print('\npartial')
     print('make print # function')
-    local printshe = fc.partial(print, '#')
-    printshe('whoami','code')
+    local print_shell = fct.partial(print, '#')
+    print_shell('whoami', 'code')
+
     print('make map to string function')
-    local mapstr = fc.partial(fc.map, tostring)
-    gkv(mapstr(array))
+    local map_to_string = fct.partial(fct.map, tostring)
+    gkv(map_to_string(array))
+
     print('make filter for numbers')
-    local filstr = fc.partial(fc.filter,
-                               function(x) return type(x)=='number' end)
-    gkv(filstr(mixarr))
+    local filter_numbers = fct.partial(
+        fct.filter,
+        function(value)
+            return type(value) == 'number'
+        end
+    )
+    gkv(filter_numbers(mixed_values))
+
+    assert(type(map_to_string) == 'function')
+
 
     print('\ncompose')
     print('exclude gkv')
-    local nogkv = fc.compose(gkv, mapstr)
-    nogkv(mixarr)
-    print('make lent for all items')
-    local maplent = fc.partial(fc.map, string.len)
-    print('exclude lent')
-    local nolent = fc.compose(maplent, fc.compose(mapstr, filstr))
-    gkv(nolent(mixarr))
+    local print_without_gkv = fct.compose(gkv, map_to_string)
+    print_without_gkv(mixed_values)
+
+    print('make length for all items')
+    local map_string_length = fct.partial(fct.map, string.len)
+
+    print('exclude length')
+    local string_length_pipeline = fct.compose(
+        map_string_length,
+        fct.compose(map_to_string, filter_numbers)
+    )
+    gkv(string_length_pipeline(mixed_values))
+
+    assert(type(print_without_gkv) == 'function')
+
 
     print('\nchain')
-    local objects = {{hp=10, wound=false},{hp=5, wound=true}}
-    local combo = fc.chain(function(o) o.hp=o.hp-1 end,
-                            function(o) o.wound=true end)
-    combo(objects[1])
-    gkv(objects[1])
+    local enemies = {
+        {hp = 10, wound = false},
+        {hp = 5, wound = true}
+    }
+
+    local enemy_update_chain = fct.chain(
+        function(enemy)
+            enemy.hp = enemy.hp - 1
+        end,
+        function(enemy)
+            enemy.wound = true
+        end
+    )
+    enemy_update_chain(enemies[1])
+    gkv(enemies[1])
+
+    assert(
+        enemies[1].hp == 9
+        and enemies[1].wound == true
+    )
+
 
     print('\ncache')
-    local ccos=fc.cache(math.cos)
-    print(ccos(1))
-    print(ccos(1))
+    local cached_cosine = fct.cache(math.cos)
+    print(cached_cosine(1))
+    print(cached_cosine(1))
+
+    assert(cached_cosine(1) == cached_cosine(1))
+
 
     print('\naccumulate')
-    print(unpack(fc.accumulate(fc.range(5))))
-    print(unpack(fc.accumulate(fc.range(5),function(aa,bb) return aa*bb end)))
+    local accumulated = fct.accumulate(fct.range(5))
+    print(unpack(accumulated))
+    print(unpack(fct.accumulate(
+        fct.range(5),
+        function(first_value, second_value)
+            return first_value * second_value
+        end
+    )))
 
+    assert(#accumulated == 5)
+end
 
+local function combinatorics()
     print('\npermutation')
-    local mut=fc.permutation(fc.range(3))
-    fc.map(function(x) print(table.concat(x,' ')) end, mut)
-    mut=fc.permutation({'a','b','c'})
-    fc.map(function(x) print(table.concat(x,' ')) end, mut)
+    local permutations = fct.permutation(fct.range(3))
+    fct.map(
+        function(permutation)
+            print(table.concat(permutation, ' '))
+        end,
+        permutations
+    )
+    permutations = fct.permutation({'a', 'b', 'c'})
+
+    fct.map(
+        function(permutation)
+            print(table.concat(permutation, ' '))
+        end,
+        permutations
+    )
+
+    assert(#permutations == 6)
+
 
     print('\ncombinations')
-    local combi = fc.combination({0,1,2,3},3)
-    print('combinations', #combi)
-    fc.map(function(x) print (table.concat(x, ' ')) end, combi)
+    local combinations = fct.combination(
+        {0, 1, 2, 3},
+        3
+    )
+    print('combinations', #combinations)
 
-    local clr=fc.combination(fc.range(0,1,0.1),3)
-    fc.map(function(x) print(table.concat(x,' ')) end, clr)
+    fct.map(
+        function(combination)
+            print(table.concat(combination, ' '))
+        end,
+        combinations
+    )
+    local range_combinations = fct.combination(
+        fct.range(0, 1, 0.1),
+        3
+    )
+    fct.map(
+        function(combination)
+            print(table.concat(combination, ' '))
+        end,
+        range_combinations
+    )
 
-    print('\nrandkey', target[fc.randkey(target)])
-    print('\nrandval', fc.randval(target))
-    print('randval 100', fc.randval(fc.range(100)))
+    assert(#combinations == 4)
+end
+
+local function random()
+    local target = {
+        0,
+        1,
+        gkv,
+        ['lua'] = 'moon',
+        ['bit'] = {0, 1}
+    }
+
+
+    print('\nrandkey')
+    local random_key = fct.randkey(target)
+    print(random_key)
+    assert(fct.iskey(random_key, target) ~= false)
+
+
+    print('\nrandval')
+    local random_value = fct.randval(target)
+    print(random_value)
+
+    print('randval 100', fct.randval(fct.range(100)))
+    assert(fct.isval(random_value, target) ~= false)
+
 
     print('\nshuff')
-    local shuf = fc.shuff(target)
+    local shuffled_target = fct.shuff(target)
     print('target')
     gkv(target)
     print('shuf')
-    gkv(shuf)
+    gkv(shuffled_target)
+
+    assert(fct.len(shuffled_target) == fct.len(target))
+
 
     print('\nshuffknuth')
-    gkv(fc.shuffknuth(fc.range(5)),' ')
-
-    local shufk = fc.shuffknuth(target)
+    gkv(fct.shuffknuth(fct.range(5)), ' ')
+    local knuth_shuffled_target = fct.shuffknuth(target)
     print('target')
     gkv(target)
     print('shufk')
-    gkv(shufk)
+    gkv(knuth_shuffled_target)
 
-    print('shuffknuth perfomance')
-    local tclk = os.clock()
-    local str= 'Hello W'
-    local hell=fc.split(str)
+    print('shuffknuth performance')
+    local start_time = os.clock()
+    local original_string = 'Hello W'
+    local shuffled_string_chars = fct.split(original_string)
+    for _ = 1, math.huge do
+        shuffled_string_chars = fct.shuffknuth(
+            shuffled_string_chars
+        )
 
-    for _=1, math.huge do
-        hell=fc.shuffknuth(hell)
-        if table.concat(hell)==str then break end
+        if table.concat(shuffled_string_chars) == original_string then
+            break
+        end
     end
-    print(os.clock()-tclk)
-    print(table.concat(hell))
+    print(os.clock() - start_time)
+    print(table.concat(shuffled_string_chars))
+
+    assert(table.concat(shuffled_string_chars) == original_string)
+
 
     print('\nweighted')
-    local weigth = {['a']=0,['b']=5,['c']=10}
-    for _=1,10 do
-        print(fc.weighted(weigth))
+    local weights = {
+        ['a'] = 0,
+        ['b'] = 5,
+        ['c'] = 10
+    }
+    for _ = 1, 10 do
+        local weighted_key = fct.weighted(weights)
+        print(weighted_key)
+        assert(fct.iskey(weighted_key, weights) ~= false)
     end
+end
+
+local function test()
+    tables()
+    sorting()
+    functional()
+    combinatorics()
+    random()
 end
 
 test()

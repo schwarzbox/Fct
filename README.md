@@ -1,96 +1,124 @@
 # Fct
 
-v4.6
+## v4.7
 
-Functional Library (42 functions)
+Functional tools for Lua.
 
-Copy fct.lua to the project folder or in the dir in the LUA_PATH.
+### Usage
 
+Install [Lua 5.4](https://lua.org/ftp/).
+
+Copy `fct.lua` to the project folder or to a directory in the `LUA_PATH`.
+
+#### Minimal Example
+
+`main.lua`
 ``` lua
-local fc = require('fct')
+local fct = require('fct')
+
+fct.len({0, ['fct'] = {0, 1}})
 ```
-Look at examples in the file test.lua
 
-## Tool Box
+#### Complete Example
 
-len - return number of all elements in the given table.
+Advanced examples are available in the `test.lua` file.
 
-count - return count of how many times a given object occurs in given table.
+### API Reference
 
-keys, vals - return keys/vals of the given table.
+#### Table
 
-items - return new table which consist from {value: value} of given table
+`fct.gkv` - get and print key-value pairs of the given table.
 
-iskey, isval - return {k, v} if key/value in the given table if not return false.
+`fct.len` - return the number of all elements in the given table.
 
-flip - reverse keys and values in given table.
+`fct.count` - return the number of times a given value occurs in the given table.
 
-range - return table with numbers.
+`fct.keys, fct.vals` - return the keys or values of the given table.
 
-rep - replicate item n-times and return table of items.
+`fct.items` - return a new table containing the key-value pairs of the given table as two-element tables.
 
-split - convert string or number to the table.
+`fct.iskey, fct.isval` - return `true` if the given key or value exists in the given table; otherwise return `false`.
 
-invert- reverse table and put non number keys at the end.
+`fct.index` - return the index of the given item in the given table.
 
-isort - return iterator which allow to sort and reverse table keys/values.
+`fct.flip` - swap the keys and values of the given table.
 
-slice - return slice of the given table.
+`fct.range` - return a table containing a range of numbers.
 
-sep - return table separated on n-tables.
+`fct.rep` - replicate an item `n` times and return a table of items.
 
-copy - return recursive copy of the given table.
+`fct.split` - convert a string or number into a table of characters or separated parts.
 
-iter - make iterable from the table and return values when call by index.
+`fct.invert` - reverse the numeric keys of the given table and preserve non-numeric keys.
 
-equal - return true if all elements(key,value) in table1 equal for all elements in table2(key,value).
+`fct.slice` - return a slice of the given table.
 
-join - return table that created from given two arguments.
+`fct.sep` - return the given table separated into tables containing `n` elements.
 
-union - return table without duplicate values from the two tables.
+`fct.copy` - return a recursive copy of the given table.
 
-same - return table with same values from the two tables.
+`fct.iter` - make the given table iterable and return values when accessed by index.
 
-diff - return table with different values from the two tables.
+`fct.equal` - return `true` if the two tables have the same number of elements and corresponding key-value pairs are equal.
 
-each - call a given function\method to each element in the given table
+`fct.join` - return a table created by joining the given arguments.
 
-map - call a given function to each element in the given table and return new table.
+`fct.set`   - return a table containing the values of the given table as both keys and values.
 
-mapr - call a given function to each element in the given table recursevly and return new table.
+`fct.union` - return a table containing unique values from the given two tables.
 
-filter - filter table by given function and return new filteredtable.
+`fct.same` - return a table containing values occurring in both given tables.
 
-any - return true if any item in table not nil or false.
+`fct.diff` - return a table containing values occurring in only one of the given tables.
 
-all - return true if all item in table not nil or false.
+#### Sorting
 
-zip -  iterates through multiple tables, and aggregates them.
+`fct.isort` - return an iterator for sorting table keys, or sorting keys according to their values, with optional reverse ordering.
 
-reduce - call a function to each element in the table to reduce the table to a single value.
+#### Functional
 
-partial - return function with fixed first argument.
+`fct.each` - call a given function or method for each element in the given table.
 
-compose - return function constructed from two functions provided in args.
+`fct.map` - call a given function for each element in the given table and return a new table.
 
-chain - combine together some functions.
+`fct.mapr` - call a given function for each element in the given table recursively and return a new table.
 
-cache - cache function.
+`fct.filter` - filter the given table using a given function and return a new table.
 
-accumulate - return table with accumulated sums. If no function is passed, addition takes place by default.
+`fct.any` - return `true` if any item in the table is truthy.
 
-permutation - return table of tables with all permutation for a given table.
+`fct.all` - return `true` if all items in the table are truthy.
 
-combination - return table of tables with combinations of elements taken k at a time without repetitions from given table.
+`fct.zip` - aggregate corresponding elements from multiple tables into a new table, stopping at the shortest table.
 
-randkey, randval - return random key/value from the given table.
+`fct.reduce` - apply a given function successively to the elements of the given table and return a single value.
 
-shuff - return the mixed version of the given table.
+`fct.partial` - return a function with its first argument fixed.
 
-shuffknuth - return mixed version of the given table (faster then shuff but only for number keys).
+`fct.compose` - return a function constructed from two functions provided as arguments.
 
-weighted - select keys by their weights.
+`fct.chain` - combine multiple functions into a single function.
 
-## Support
+`fct.cache` - return a function that caches the results of another function.
 
-gkv - get print key value of given table
+`fct.accumulate` - return a table containing accumulated results; addition is used by default or a given function can be supplied.
+
+#### Combinatorics
+
+`fct.permutation` - return a table of tables containing all permutations of the given table.
+
+`fct.combination` - return a table of tables containing combinations of elements taken `k` at a time without repetitions from the given table.
+
+#### Random
+
+`fct.randkey, fct.randval` - return a random key or value from the given table.
+
+`fct.shuff` - return a mixed version of the given table.
+
+`fct.shuffknuth` - return a mixed version of the given table, faster than `fct.shuff` but only for tables with numeric keys.
+
+`fct.weighted` - select a key according to the weights of the given table.
+
+### Credits
+
+Code: [Aliaksandr Veledzimovich](https://twitter.com/veledzimovich)
